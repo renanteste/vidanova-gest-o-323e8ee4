@@ -9,38 +9,154 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VeiculosRouteImport } from './routes/veiculos'
+import { Route as MotoristasRouteImport } from './routes/motoristas'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardVinculadoRouteImport } from './routes/dashboard.vinculado'
+import { Route as DashboardFrotaRouteImport } from './routes/dashboard.frota'
+import { Route as DashboardAutonomoRouteImport } from './routes/dashboard.autonomo'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 
+const VeiculosRoute = VeiculosRouteImport.update({
+  id: '/veiculos',
+  path: '/veiculos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MotoristasRoute = MotoristasRouteImport.update({
+  id: '/motoristas',
+  path: '/motoristas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardVinculadoRoute = DashboardVinculadoRouteImport.update({
+  id: '/dashboard/vinculado',
+  path: '/dashboard/vinculado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardFrotaRoute = DashboardFrotaRouteImport.update({
+  id: '/dashboard/frota',
+  path: '/dashboard/frota',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAutonomoRoute = DashboardAutonomoRouteImport.update({
+  id: '/dashboard/autonomo',
+  path: '/dashboard/autonomo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
+  id: '/dashboard/admin',
+  path: '/dashboard/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/motoristas': typeof MotoristasRoute
+  '/veiculos': typeof VeiculosRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/autonomo': typeof DashboardAutonomoRoute
+  '/dashboard/frota': typeof DashboardFrotaRoute
+  '/dashboard/vinculado': typeof DashboardVinculadoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/motoristas': typeof MotoristasRoute
+  '/veiculos': typeof VeiculosRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/autonomo': typeof DashboardAutonomoRoute
+  '/dashboard/frota': typeof DashboardFrotaRoute
+  '/dashboard/vinculado': typeof DashboardVinculadoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/motoristas': typeof MotoristasRoute
+  '/veiculos': typeof VeiculosRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
+  '/dashboard/autonomo': typeof DashboardAutonomoRoute
+  '/dashboard/frota': typeof DashboardFrotaRoute
+  '/dashboard/vinculado': typeof DashboardVinculadoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/motoristas'
+    | '/veiculos'
+    | '/dashboard/admin'
+    | '/dashboard/autonomo'
+    | '/dashboard/frota'
+    | '/dashboard/vinculado'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/motoristas'
+    | '/veiculos'
+    | '/dashboard/admin'
+    | '/dashboard/autonomo'
+    | '/dashboard/frota'
+    | '/dashboard/vinculado'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/motoristas'
+    | '/veiculos'
+    | '/dashboard/admin'
+    | '/dashboard/autonomo'
+    | '/dashboard/frota'
+    | '/dashboard/vinculado'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
+  MotoristasRoute: typeof MotoristasRoute
+  VeiculosRoute: typeof VeiculosRoute
+  DashboardAdminRoute: typeof DashboardAdminRoute
+  DashboardAutonomoRoute: typeof DashboardAutonomoRoute
+  DashboardFrotaRoute: typeof DashboardFrotaRoute
+  DashboardVinculadoRoute: typeof DashboardVinculadoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/veiculos': {
+      id: '/veiculos'
+      path: '/veiculos'
+      fullPath: '/veiculos'
+      preLoaderRoute: typeof VeiculosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/motoristas': {
+      id: '/motoristas'
+      path: '/motoristas'
+      fullPath: '/motoristas'
+      preLoaderRoute: typeof MotoristasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +164,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/vinculado': {
+      id: '/dashboard/vinculado'
+      path: '/dashboard/vinculado'
+      fullPath: '/dashboard/vinculado'
+      preLoaderRoute: typeof DashboardVinculadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/frota': {
+      id: '/dashboard/frota'
+      path: '/dashboard/frota'
+      fullPath: '/dashboard/frota'
+      preLoaderRoute: typeof DashboardFrotaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/autonomo': {
+      id: '/dashboard/autonomo'
+      path: '/dashboard/autonomo'
+      fullPath: '/dashboard/autonomo'
+      preLoaderRoute: typeof DashboardAutonomoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
+      path: '/dashboard/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
+  MotoristasRoute: MotoristasRoute,
+  VeiculosRoute: VeiculosRoute,
+  DashboardAdminRoute: DashboardAdminRoute,
+  DashboardAutonomoRoute: DashboardAutonomoRoute,
+  DashboardFrotaRoute: DashboardFrotaRoute,
+  DashboardVinculadoRoute: DashboardVinculadoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
