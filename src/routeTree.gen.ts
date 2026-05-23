@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VeiculosRouteImport } from './routes/veiculos'
+import { Route as MotoristasRouteImport } from './routes/motoristas'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardVinculadoRouteImport } from './routes/dashboard.vinculado'
@@ -16,6 +18,16 @@ import { Route as DashboardFrotaRouteImport } from './routes/dashboard.frota'
 import { Route as DashboardAutonomoRouteImport } from './routes/dashboard.autonomo'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 
+const VeiculosRoute = VeiculosRouteImport.update({
+  id: '/veiculos',
+  path: '/veiculos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MotoristasRoute = MotoristasRouteImport.update({
+  id: '/motoristas',
+  path: '/motoristas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -50,6 +62,8 @@ const DashboardAdminRoute = DashboardAdminRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/motoristas': typeof MotoristasRoute
+  '/veiculos': typeof VeiculosRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/autonomo': typeof DashboardAutonomoRoute
   '/dashboard/frota': typeof DashboardFrotaRoute
@@ -58,6 +72,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/motoristas': typeof MotoristasRoute
+  '/veiculos': typeof VeiculosRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/autonomo': typeof DashboardAutonomoRoute
   '/dashboard/frota': typeof DashboardFrotaRoute
@@ -67,6 +83,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/motoristas': typeof MotoristasRoute
+  '/veiculos': typeof VeiculosRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/autonomo': typeof DashboardAutonomoRoute
   '/dashboard/frota': typeof DashboardFrotaRoute
@@ -77,6 +95,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/motoristas'
+    | '/veiculos'
     | '/dashboard/admin'
     | '/dashboard/autonomo'
     | '/dashboard/frota'
@@ -85,6 +105,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/motoristas'
+    | '/veiculos'
     | '/dashboard/admin'
     | '/dashboard/autonomo'
     | '/dashboard/frota'
@@ -93,6 +115,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/motoristas'
+    | '/veiculos'
     | '/dashboard/admin'
     | '/dashboard/autonomo'
     | '/dashboard/frota'
@@ -102,6 +126,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  MotoristasRoute: typeof MotoristasRoute
+  VeiculosRoute: typeof VeiculosRoute
   DashboardAdminRoute: typeof DashboardAdminRoute
   DashboardAutonomoRoute: typeof DashboardAutonomoRoute
   DashboardFrotaRoute: typeof DashboardFrotaRoute
@@ -110,6 +136,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/veiculos': {
+      id: '/veiculos'
+      path: '/veiculos'
+      fullPath: '/veiculos'
+      preLoaderRoute: typeof VeiculosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/motoristas': {
+      id: '/motoristas'
+      path: '/motoristas'
+      fullPath: '/motoristas'
+      preLoaderRoute: typeof MotoristasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -158,6 +198,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  MotoristasRoute: MotoristasRoute,
+  VeiculosRoute: VeiculosRoute,
   DashboardAdminRoute: DashboardAdminRoute,
   DashboardAutonomoRoute: DashboardAutonomoRoute,
   DashboardFrotaRoute: DashboardFrotaRoute,
