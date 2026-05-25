@@ -61,6 +61,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ativo: boolean
           cnh: string | null
           created_at: string
           fk_frota_id: string | null
@@ -72,6 +73,7 @@ export type Database = {
           veiculo_id: string | null
         }
         Insert: {
+          ativo?: boolean
           cnh?: string | null
           created_at?: string
           fk_frota_id?: string | null
@@ -83,6 +85,7 @@ export type Database = {
           veiculo_id?: string | null
         }
         Update: {
+          ativo?: boolean
           cnh?: string | null
           created_at?: string
           fk_frota_id?: string | null
@@ -205,6 +208,75 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      viagens: {
+        Row: {
+          created_at: string
+          fim_em: string | null
+          foto_fim_url: string | null
+          foto_inicio_url: string
+          id: string
+          inicio_em: string
+          lat_fim: number | null
+          lat_inicio: number
+          lng_fim: number | null
+          lng_inicio: number
+          motorista_id: string
+          rota_id: string
+          updated_at: string
+          valor_frete: number | null
+          veiculo_id: string
+        }
+        Insert: {
+          created_at?: string
+          fim_em?: string | null
+          foto_fim_url?: string | null
+          foto_inicio_url: string
+          id?: string
+          inicio_em?: string
+          lat_fim?: number | null
+          lat_inicio: number
+          lng_fim?: number | null
+          lng_inicio: number
+          motorista_id: string
+          rota_id: string
+          updated_at?: string
+          valor_frete?: number | null
+          veiculo_id: string
+        }
+        Update: {
+          created_at?: string
+          fim_em?: string | null
+          foto_fim_url?: string | null
+          foto_inicio_url?: string
+          id?: string
+          inicio_em?: string
+          lat_fim?: number | null
+          lat_inicio?: number
+          lng_fim?: number | null
+          lng_inicio?: number
+          motorista_id?: string
+          rota_id?: string
+          updated_at?: string
+          valor_frete?: number | null
+          veiculo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viagens_rota_id_fkey"
+            columns: ["rota_id"]
+            isOneToOne: false
+            referencedRelation: "rotas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "viagens_veiculo_id_fkey"
+            columns: ["veiculo_id"]
+            isOneToOne: false
+            referencedRelation: "veiculos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

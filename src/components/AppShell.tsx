@@ -1,7 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useAuth, perfilLabel, dashboardPathFor } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox } from "lucide-react";
+import { LogOut, Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox, Navigation } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
@@ -71,6 +71,9 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               )}
               {isMotorista && (
                 <NavLink to="/meus-interesses" icon={<ClipboardList className="h-4 w-4" />}>Meus interesses</NavLink>
+              )}
+              {isMotorista && (
+                <NavLink to="/viagens" icon={<Navigation className="h-4 w-4" />}>Minhas viagens</NavLink>
               )}
               {(perfil === "admin" || perfil === "frota") && (
                 <NavLink to="/interesses" icon={<Inbox className="h-4 w-4" />}>Interesses</NavLink>
