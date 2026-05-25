@@ -1,7 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useAuth, perfilLabel, dashboardPathFor } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Truck, LayoutDashboard, User as UserIcon } from "lucide-react";
+import { LogOut, Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
@@ -12,6 +12,9 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
     await signOut();
     router.navigate({ to: "/login" });
   };
+
+  const perfil = profile?.perfil;
+  const isMotorista = perfil === "motorista_autonomo" || perfil === "motorista_vinculado";
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,37 +43,37 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         </div>
         {profile && (
           <nav className="bg-sidebar-accent border-t border-sidebar-border">
-            <div className="mx-auto max-w-6xl px-4 flex gap-1 text-sm">
-              <Link
-                to={dashboardPathFor(profile.perfil)}
-                className="px-3 py-2 hover:bg-sidebar-accent/60 flex items-center gap-1.5"
-                activeProps={{ className: "border-b-2 border-accent" }}
-              >
-                <LayoutDashboard className="h-4 w-4" /> Painel
-              </Link>
-              {profile.perfil !== "motorista_vinculado" && profile.perfil !== "admin" && (
-                <Link to="/veiculos" className="px-3 py-2 hover:bg-sidebar-accent/60 flex items-center gap-1.5"
-                  activeProps={{ className: "border-b-2 border-accent" }}>
-                  <Truck className="h-4 w-4" /> Meus veículos
-                </Link>
+            <div className="mx-auto max-w-6xl px-4 flex gap-1 text-sm overflow-x-auto">
+              <NavLink to={dashboardPathFor(profile.perfil)} icon={<LayoutDashboard className="h-4 w-4" />}>Painel</NavLink>
+
+              {perfil === "admin" && (
+                <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Todos veículos</NavLink>
               )}
-              {profile.perfil === "motorista_vinculado" && (
-                <Link to="/veiculos" className="px-3 py-2 hover:bg-sidebar-accent/60 flex items-center gap-1.5"
-                  activeProps={{ className: "border-b-2 border-accent" }}>
-                  <Truck className="h-4 w-4" /> Veículos da frota
-                </Link>
+              {perfil === "frota" && (
+                <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Meus veículos</NavLink>
               )}
-              {profile.perfil === "admin" && (
-                <Link to="/veiculos" className="px-3 py-2 hover:bg-sidebar-accent/60 flex items-center gap-1.5"
-                  activeProps={{ className: "border-b-2 border-accent" }}>
-                  <Truck className="h-4 w-4" /> Todos veículos
-                </Link>
+              {perfil === "motorista_autonomo" && (
+                <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Meu veículo</NavLink>
               )}
-              {profile.perfil === "frota" && (
-                <Link to="/motoristas" className="px-3 py-2 hover:bg-sidebar-accent/60 flex items-center gap-1.5"
-                  activeProps={{ className: "border-b-2 border-accent" }}>
-                  <UserIcon className="h-4 w-4" /> Motoristas
-                </Link>
+              {perfil === "motorista_vinculado" && (
+                <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Veículos da frota</NavLink>
+              )}
+
+              {perfil === "frota" && (
+                <NavLink to="/motoristas" icon={<UserIcon className="h-4 w-4" />}>Motoristas</NavLink>
+              )}
+
+              {(perfil === "admin" || perfil === "frota") && (
+                <NavLink to="/rotas" icon={<RouteIcon className="h-4 w-4" />}>Rotas</NavLink>
+              )}
+              {isMotorista && (
+                <NavLink to="/rotas-disponiveis" icon={<RouteIcon className="h-4 w-4" />}>Rotas disponíveis</NavLink>
+              )}
+              {isMotorista && (
+                <NavLink to="/meus-interesses" icon={<ClipboardList className="h-4 w-4" />}>Meus interesses</NavLink>
+              )}
+              {(perfil === "admin" || perfil === "frota") && (
+                <NavLink to="/interesses" icon={<Inbox className="h-4 w-4" />}>Interesses</NavLink>
               )}
             </div>
           </nav>
@@ -81,5 +84,17 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         {children}
       </main>
     </div>
+  );
+}
+
+function NavLink({ to, icon, children }: { to: string; icon: ReactNode; children: ReactNode }) {
+  return (
+    <Link
+      to={to}
+      className="px-3 py-2 hover:bg-sidebar-accent/60 flex items-center gap-1.5 whitespace-nowrap"
+      activeProps={{ className: "border-b-2 border-accent" }}
+    >
+      {icon} {children}
+    </Link>
   );
 }
