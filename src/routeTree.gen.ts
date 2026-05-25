@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ViagensRouteImport } from './routes/viagens'
 import { Route as VeiculosRouteImport } from './routes/veiculos'
 import { Route as RotasDisponiveisRouteImport } from './routes/rotas-disponiveis'
 import { Route as RotasRouteImport } from './routes/rotas'
@@ -22,6 +23,11 @@ import { Route as DashboardFrotaRouteImport } from './routes/dashboard.frota'
 import { Route as DashboardAutonomoRouteImport } from './routes/dashboard.autonomo'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 
+const ViagensRoute = ViagensRouteImport.update({
+  id: '/viagens',
+  path: '/viagens',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VeiculosRoute = VeiculosRouteImport.update({
   id: '/veiculos',
   path: '/veiculos',
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/rotas': typeof RotasRoute
   '/rotas-disponiveis': typeof RotasDisponiveisRoute
   '/veiculos': typeof VeiculosRoute
+  '/viagens': typeof ViagensRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/autonomo': typeof DashboardAutonomoRoute
   '/dashboard/frota': typeof DashboardFrotaRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/rotas': typeof RotasRoute
   '/rotas-disponiveis': typeof RotasDisponiveisRoute
   '/veiculos': typeof VeiculosRoute
+  '/viagens': typeof ViagensRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/autonomo': typeof DashboardAutonomoRoute
   '/dashboard/frota': typeof DashboardFrotaRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/rotas': typeof RotasRoute
   '/rotas-disponiveis': typeof RotasDisponiveisRoute
   '/veiculos': typeof VeiculosRoute
+  '/viagens': typeof ViagensRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/autonomo': typeof DashboardAutonomoRoute
   '/dashboard/frota': typeof DashboardFrotaRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/rotas'
     | '/rotas-disponiveis'
     | '/veiculos'
+    | '/viagens'
     | '/dashboard/admin'
     | '/dashboard/autonomo'
     | '/dashboard/frota'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/rotas'
     | '/rotas-disponiveis'
     | '/veiculos'
+    | '/viagens'
     | '/dashboard/admin'
     | '/dashboard/autonomo'
     | '/dashboard/frota'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/rotas'
     | '/rotas-disponiveis'
     | '/veiculos'
+    | '/viagens'
     | '/dashboard/admin'
     | '/dashboard/autonomo'
     | '/dashboard/frota'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   RotasRoute: typeof RotasRoute
   RotasDisponiveisRoute: typeof RotasDisponiveisRoute
   VeiculosRoute: typeof VeiculosRoute
+  ViagensRoute: typeof ViagensRoute
   DashboardAdminRoute: typeof DashboardAdminRoute
   DashboardAutonomoRoute: typeof DashboardAutonomoRoute
   DashboardFrotaRoute: typeof DashboardFrotaRoute
@@ -188,6 +201,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/viagens': {
+      id: '/viagens'
+      path: '/viagens'
+      fullPath: '/viagens'
+      preLoaderRoute: typeof ViagensRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/veiculos': {
       id: '/veiculos'
       path: '/veiculos'
@@ -284,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   RotasRoute: RotasRoute,
   RotasDisponiveisRoute: RotasDisponiveisRoute,
   VeiculosRoute: VeiculosRoute,
+  ViagensRoute: ViagensRoute,
   DashboardAdminRoute: DashboardAdminRoute,
   DashboardAutonomoRoute: DashboardAutonomoRoute,
   DashboardFrotaRoute: DashboardFrotaRoute,
@@ -292,3 +313,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
