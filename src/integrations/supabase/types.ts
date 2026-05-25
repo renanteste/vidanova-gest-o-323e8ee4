@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      interesses_rotas: {
+        Row: {
+          created_at: string
+          id: string
+          motorista_id: string
+          rota_id: string
+          status: Database["public"]["Enums"]["interesse_status"]
+          updated_at: string
+          veiculo_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          motorista_id: string
+          rota_id: string
+          status?: Database["public"]["Enums"]["interesse_status"]
+          updated_at?: string
+          veiculo_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          motorista_id?: string
+          rota_id?: string
+          status?: Database["public"]["Enums"]["interesse_status"]
+          updated_at?: string
+          veiculo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interesses_rotas_rota_id_fkey"
+            columns: ["rota_id"]
+            isOneToOne: false
+            referencedRelation: "rotas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interesses_rotas_veiculo_id_fkey"
+            columns: ["veiculo_id"]
+            isOneToOne: false
+            referencedRelation: "veiculos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           cnh: string | null
@@ -47,6 +92,57 @@ export type Database = {
           updated_at?: string
           user_id?: string
           veiculo_id?: string | null
+        }
+        Relationships: []
+      }
+      rotas: {
+        Row: {
+          created_at: string
+          criada_por: string
+          destino_complemento: string | null
+          destino_endereco: string
+          distancia_km: number | null
+          horario_previsto: string
+          id: string
+          material: string
+          obra: string
+          origem_complemento: string | null
+          origem_endereco: string
+          preco_por_m3: number
+          status: Database["public"]["Enums"]["rota_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criada_por: string
+          destino_complemento?: string | null
+          destino_endereco: string
+          distancia_km?: number | null
+          horario_previsto: string
+          id?: string
+          material: string
+          obra: string
+          origem_complemento?: string | null
+          origem_endereco: string
+          preco_por_m3: number
+          status?: Database["public"]["Enums"]["rota_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criada_por?: string
+          destino_complemento?: string | null
+          destino_endereco?: string
+          distancia_km?: number | null
+          horario_previsto?: string
+          id?: string
+          material?: string
+          obra?: string
+          origem_complemento?: string | null
+          origem_endereco?: string
+          preco_por_m3?: number
+          status?: Database["public"]["Enums"]["rota_status"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -130,6 +226,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "frota" | "motorista_autonomo" | "motorista_vinculado"
+      interesse_status: "pendente" | "aprovado" | "rejeitado"
+      rota_status: "disponivel" | "finalizada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -258,6 +356,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "frota", "motorista_autonomo", "motorista_vinculado"],
+      interesse_status: ["pendente", "aprovado", "rejeitado"],
+      rota_status: ["disponivel", "finalizada"],
     },
   },
 } as const

@@ -10,8 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VeiculosRouteImport } from './routes/veiculos'
+import { Route as RotasDisponiveisRouteImport } from './routes/rotas-disponiveis'
+import { Route as RotasRouteImport } from './routes/rotas'
 import { Route as MotoristasRouteImport } from './routes/motoristas'
+import { Route as MeusInteressesRouteImport } from './routes/meus-interesses'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InteressesRouteImport } from './routes/interesses'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardVinculadoRouteImport } from './routes/dashboard.vinculado'
 import { Route as DashboardFrotaRouteImport } from './routes/dashboard.frota'
@@ -23,14 +27,34 @@ const VeiculosRoute = VeiculosRouteImport.update({
   path: '/veiculos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RotasDisponiveisRoute = RotasDisponiveisRouteImport.update({
+  id: '/rotas-disponiveis',
+  path: '/rotas-disponiveis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RotasRoute = RotasRouteImport.update({
+  id: '/rotas',
+  path: '/rotas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MotoristasRoute = MotoristasRouteImport.update({
   id: '/motoristas',
   path: '/motoristas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeusInteressesRoute = MeusInteressesRouteImport.update({
+  id: '/meus-interesses',
+  path: '/meus-interesses',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InteressesRoute = InteressesRouteImport.update({
+  id: '/interesses',
+  path: '/interesses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -61,8 +85,12 @@ const DashboardAdminRoute = DashboardAdminRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/interesses': typeof InteressesRoute
   '/login': typeof LoginRoute
+  '/meus-interesses': typeof MeusInteressesRoute
   '/motoristas': typeof MotoristasRoute
+  '/rotas': typeof RotasRoute
+  '/rotas-disponiveis': typeof RotasDisponiveisRoute
   '/veiculos': typeof VeiculosRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/autonomo': typeof DashboardAutonomoRoute
@@ -71,8 +99,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/interesses': typeof InteressesRoute
   '/login': typeof LoginRoute
+  '/meus-interesses': typeof MeusInteressesRoute
   '/motoristas': typeof MotoristasRoute
+  '/rotas': typeof RotasRoute
+  '/rotas-disponiveis': typeof RotasDisponiveisRoute
   '/veiculos': typeof VeiculosRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/autonomo': typeof DashboardAutonomoRoute
@@ -82,8 +114,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/interesses': typeof InteressesRoute
   '/login': typeof LoginRoute
+  '/meus-interesses': typeof MeusInteressesRoute
   '/motoristas': typeof MotoristasRoute
+  '/rotas': typeof RotasRoute
+  '/rotas-disponiveis': typeof RotasDisponiveisRoute
   '/veiculos': typeof VeiculosRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/autonomo': typeof DashboardAutonomoRoute
@@ -94,8 +130,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/interesses'
     | '/login'
+    | '/meus-interesses'
     | '/motoristas'
+    | '/rotas'
+    | '/rotas-disponiveis'
     | '/veiculos'
     | '/dashboard/admin'
     | '/dashboard/autonomo'
@@ -104,8 +144,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/interesses'
     | '/login'
+    | '/meus-interesses'
     | '/motoristas'
+    | '/rotas'
+    | '/rotas-disponiveis'
     | '/veiculos'
     | '/dashboard/admin'
     | '/dashboard/autonomo'
@@ -114,8 +158,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/interesses'
     | '/login'
+    | '/meus-interesses'
     | '/motoristas'
+    | '/rotas'
+    | '/rotas-disponiveis'
     | '/veiculos'
     | '/dashboard/admin'
     | '/dashboard/autonomo'
@@ -125,8 +173,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  InteressesRoute: typeof InteressesRoute
   LoginRoute: typeof LoginRoute
+  MeusInteressesRoute: typeof MeusInteressesRoute
   MotoristasRoute: typeof MotoristasRoute
+  RotasRoute: typeof RotasRoute
+  RotasDisponiveisRoute: typeof RotasDisponiveisRoute
   VeiculosRoute: typeof VeiculosRoute
   DashboardAdminRoute: typeof DashboardAdminRoute
   DashboardAutonomoRoute: typeof DashboardAutonomoRoute
@@ -143,6 +195,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VeiculosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rotas-disponiveis': {
+      id: '/rotas-disponiveis'
+      path: '/rotas-disponiveis'
+      fullPath: '/rotas-disponiveis'
+      preLoaderRoute: typeof RotasDisponiveisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rotas': {
+      id: '/rotas'
+      path: '/rotas'
+      fullPath: '/rotas'
+      preLoaderRoute: typeof RotasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/motoristas': {
       id: '/motoristas'
       path: '/motoristas'
@@ -150,11 +216,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MotoristasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meus-interesses': {
+      id: '/meus-interesses'
+      path: '/meus-interesses'
+      fullPath: '/meus-interesses'
+      preLoaderRoute: typeof MeusInteressesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/interesses': {
+      id: '/interesses'
+      path: '/interesses'
+      fullPath: '/interesses'
+      preLoaderRoute: typeof InteressesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -197,8 +277,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  InteressesRoute: InteressesRoute,
   LoginRoute: LoginRoute,
+  MeusInteressesRoute: MeusInteressesRoute,
   MotoristasRoute: MotoristasRoute,
+  RotasRoute: RotasRoute,
+  RotasDisponiveisRoute: RotasDisponiveisRoute,
   VeiculosRoute: VeiculosRoute,
   DashboardAdminRoute: DashboardAdminRoute,
   DashboardAutonomoRoute: DashboardAutonomoRoute,
