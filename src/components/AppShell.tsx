@@ -72,6 +72,9 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               {isMotorista && (
                 <NavLink to="/meus-interesses" icon={<ClipboardList className="h-4 w-4" />}>Meus interesses</NavLink>
               )}
+              {isMotorista && (
+                <NavLink to="/viagens" icon={<Navigation className="h-4 w-4" />}>Minhas viagens</NavLink>
+              )}
               {(perfil === "admin" || perfil === "frota") && (
                 <NavLink to="/interesses" icon={<Inbox className="h-4 w-4" />}>Interesses</NavLink>
               )}
