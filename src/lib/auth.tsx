@@ -33,6 +33,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = async (uid: string) => {
     const { data } = await supabase.from("profiles").select("*").eq("user_id", uid).maybeSingle();
+    if (data && (data as any).ativo === false) {
+      await supabase.auth.signOut();
+      setProfile(null);
+      return;
+    }
     setProfile((data as ProfileData) ?? null);
   };
 
