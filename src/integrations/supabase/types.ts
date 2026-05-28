@@ -328,6 +328,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_route_assignment: {
+        Args: { _rota_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_vehicle_assignment: {
+        Args: { _user_id: string; _veiculo_id: string }
+        Returns: boolean
+      }
+      is_motorista_of_frota: {
+        Args: { _frota_id: string; _motorista_id: string }
+        Returns: boolean
+      }
+      is_route_creator: {
+        Args: { _rota_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "frota" | "motorista_autonomo" | "motorista_vinculado"
