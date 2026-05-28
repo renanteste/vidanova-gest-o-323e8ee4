@@ -75,8 +75,11 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               {isMotorista && (
                 <NavLink to="/viagens" icon={<Navigation className="h-4 w-4" />}>Minhas viagens</NavLink>
               )}
-              {(perfil === "admin" || perfil === "frota") && (
+              {perfil === "admin" && (
                 <NavLink to="/interesses" icon={<Inbox className="h-4 w-4" />}>Interesses</NavLink>
+              )}
+              {perfil === "frota" && (
+                <NavLink to="/interesses-frota" icon={<Inbox className="h-4 w-4" />}>Solicitações</NavLink>
               )}
             </div>
           </nav>

@@ -16,6 +16,7 @@ import { Route as RotasRouteImport } from './routes/rotas'
 import { Route as MotoristasRouteImport } from './routes/motoristas'
 import { Route as MeusInteressesRouteImport } from './routes/meus-interesses'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InteressesFrotaRouteImport } from './routes/interesses-frota'
 import { Route as InteressesRouteImport } from './routes/interesses'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardVinculadoRouteImport } from './routes/dashboard.vinculado'
@@ -58,6 +59,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InteressesFrotaRoute = InteressesFrotaRouteImport.update({
+  id: '/interesses-frota',
+  path: '/interesses-frota',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InteressesRoute = InteressesRouteImport.update({
   id: '/interesses',
   path: '/interesses',
@@ -92,6 +98,7 @@ const DashboardAdminRoute = DashboardAdminRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/interesses': typeof InteressesRoute
+  '/interesses-frota': typeof InteressesFrotaRoute
   '/login': typeof LoginRoute
   '/meus-interesses': typeof MeusInteressesRoute
   '/motoristas': typeof MotoristasRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/interesses': typeof InteressesRoute
+  '/interesses-frota': typeof InteressesFrotaRoute
   '/login': typeof LoginRoute
   '/meus-interesses': typeof MeusInteressesRoute
   '/motoristas': typeof MotoristasRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/interesses': typeof InteressesRoute
+  '/interesses-frota': typeof InteressesFrotaRoute
   '/login': typeof LoginRoute
   '/meus-interesses': typeof MeusInteressesRoute
   '/motoristas': typeof MotoristasRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/interesses'
+    | '/interesses-frota'
     | '/login'
     | '/meus-interesses'
     | '/motoristas'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/interesses'
+    | '/interesses-frota'
     | '/login'
     | '/meus-interesses'
     | '/motoristas'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/interesses'
+    | '/interesses-frota'
     | '/login'
     | '/meus-interesses'
     | '/motoristas'
@@ -186,6 +198,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InteressesRoute: typeof InteressesRoute
+  InteressesFrotaRoute: typeof InteressesFrotaRoute
   LoginRoute: typeof LoginRoute
   MeusInteressesRoute: typeof MeusInteressesRoute
   MotoristasRoute: typeof MotoristasRoute
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/interesses-frota': {
+      id: '/interesses-frota'
+      path: '/interesses-frota'
+      fullPath: '/interesses-frota'
+      preLoaderRoute: typeof InteressesFrotaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/interesses': {
       id: '/interesses'
       path: '/interesses'
@@ -298,6 +318,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InteressesRoute: InteressesRoute,
+  InteressesFrotaRoute: InteressesFrotaRoute,
   LoginRoute: LoginRoute,
   MeusInteressesRoute: MeusInteressesRoute,
   MotoristasRoute: MotoristasRoute,
@@ -313,13 +334,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -16,30 +16,42 @@ export type Database = {
     Tables: {
       interesses_rotas: {
         Row: {
+          aprovado_frota_em: string | null
           created_at: string
           id: string
+          motorista_designado_id: string | null
           motorista_id: string
           rota_id: string
           status: Database["public"]["Enums"]["interesse_status"]
+          status_aprovacao_frota: string
           updated_at: string
+          veiculo_designado_id: string | null
           veiculo_id: string
         }
         Insert: {
+          aprovado_frota_em?: string | null
           created_at?: string
           id?: string
+          motorista_designado_id?: string | null
           motorista_id: string
           rota_id: string
           status?: Database["public"]["Enums"]["interesse_status"]
+          status_aprovacao_frota?: string
           updated_at?: string
+          veiculo_designado_id?: string | null
           veiculo_id: string
         }
         Update: {
+          aprovado_frota_em?: string | null
           created_at?: string
           id?: string
+          motorista_designado_id?: string | null
           motorista_id?: string
           rota_id?: string
           status?: Database["public"]["Enums"]["interesse_status"]
+          status_aprovacao_frota?: string
           updated_at?: string
+          veiculo_designado_id?: string | null
           veiculo_id?: string
         }
         Relationships: [
