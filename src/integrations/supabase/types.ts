@@ -65,6 +65,7 @@ export type Database = {
           cnh: string | null
           created_at: string
           fk_frota_id: string | null
+          foto_url: string | null
           nome: string
           perfil: Database["public"]["Enums"]["app_role"]
           telefone: string | null
@@ -77,6 +78,7 @@ export type Database = {
           cnh?: string | null
           created_at?: string
           fk_frota_id?: string | null
+          foto_url?: string | null
           nome: string
           perfil: Database["public"]["Enums"]["app_role"]
           telefone?: string | null
@@ -89,6 +91,7 @@ export type Database = {
           cnh?: string | null
           created_at?: string
           fk_frota_id?: string | null
+          foto_url?: string | null
           nome?: string
           perfil?: Database["public"]["Enums"]["app_role"]
           telefone?: string | null
@@ -100,6 +103,7 @@ export type Database = {
       }
       rotas: {
         Row: {
+          construtora: string | null
           created_at: string
           criada_por: string
           destino_complemento: string | null
@@ -107,15 +111,21 @@ export type Database = {
           distancia_km: number | null
           horario_previsto: string
           id: string
+          lat_destino: number | null
+          lat_origem: number | null
+          lng_destino: number | null
+          lng_origem: number | null
           material: string
           obra: string
           origem_complemento: string | null
           origem_endereco: string
           preco_por_m3: number
+          responsavel: string | null
           status: Database["public"]["Enums"]["rota_status"]
           updated_at: string
         }
         Insert: {
+          construtora?: string | null
           created_at?: string
           criada_por: string
           destino_complemento?: string | null
@@ -123,15 +133,21 @@ export type Database = {
           distancia_km?: number | null
           horario_previsto: string
           id?: string
+          lat_destino?: number | null
+          lat_origem?: number | null
+          lng_destino?: number | null
+          lng_origem?: number | null
           material: string
           obra: string
           origem_complemento?: string | null
           origem_endereco: string
           preco_por_m3: number
+          responsavel?: string | null
           status?: Database["public"]["Enums"]["rota_status"]
           updated_at?: string
         }
         Update: {
+          construtora?: string | null
           created_at?: string
           criada_por?: string
           destino_complemento?: string | null
@@ -139,11 +155,16 @@ export type Database = {
           distancia_km?: number | null
           horario_previsto?: string
           id?: string
+          lat_destino?: number | null
+          lat_origem?: number | null
+          lng_destino?: number | null
+          lng_origem?: number | null
           material?: string
           obra?: string
           origem_complemento?: string | null
           origem_endereco?: string
           preco_por_m3?: number
+          responsavel?: string | null
           status?: Database["public"]["Enums"]["rota_status"]
           updated_at?: string
         }
