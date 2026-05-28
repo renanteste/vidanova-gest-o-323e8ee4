@@ -56,6 +56,7 @@ const veiculoSchema = z.object({
 function VeiculosPage() {
   const { user, profile } = useAuth();
   const [list, setList] = useState<Veiculo[]>([]);
+  const [proprietarios, setProprietarios] = useState<Record<string, { nome: string; perfil: string }>>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Veiculo | null>(null);
   const [open, setOpen] = useState(false);
@@ -66,14 +67,26 @@ function VeiculosPage() {
   );
   const canEdit = profile && (profile.perfil === "frota" || profile.perfil === "motorista_autonomo");
   const readOnly = profile?.perfil === "motorista_vinculado" || profile?.perfil === "admin";
+  const isAdmin = profile?.perfil === "admin";
 
   const load = async () => {
     if (!user || !profile) return;
     setLoading(true);
-    // RLS handles scoping; just select all visible to the user
     const { data, error } = await supabase.from("veiculos").select("*").order("created_at", { ascending: false });
     if (error) toast.error(error.message);
-    setList((data as Veiculo[]) ?? []);
+    const veh = (data as Veiculo[]) ?? [];
+    setList(veh);
+
+    if (isAdmin && veh.length > 0) {
+      const ownerIds = [...new Set(veh.map((v) => v.proprietario_id))];
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id, nome, perfil")
+        .in("user_id", ownerIds);
+      const map: Record<string, { nome: string; perfil: string }> = {};
+      (profs ?? []).forEach((p: any) => { map[p.user_id] = { nome: p.nome, perfil: p.perfil }; });
+      setProprietarios(map);
+    }
     setLoading(false);
   };
 
@@ -89,6 +102,51 @@ function VeiculosPage() {
   const title = profile?.perfil === "admin" ? "Todos os veículos"
     : profile?.perfil === "motorista_vinculado" ? "Veículos da frota"
     : "Meus veículos";
+
+  const renderCard = (v: Veiculo) => (
+    <Card key={v.id} className="overflow-hidden">
+      <div className="aspect-video bg-muted relative">
+        {v.foto_url ? (
+          <img src={v.foto_url} alt={v.placa} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full grid place-items-center text-muted-foreground">
+            <Truck className="h-12 w-12 opacity-30" />
+          </div>
+        )}
+        <Badge className="absolute top-2 right-2" variant={v.ativa ? "default" : "secondary"}>
+          {v.ativa ? "Ativa" : "Inativa"}
+        </Badge>
+      </div>
+      <CardContent className="pt-4 space-y-1">
+        <div className="font-mono text-lg font-semibold tracking-wider">{v.placa}</div>
+        <div className="font-medium">{v.modelo}</div>
+        <div className="text-sm text-muted-foreground">{v.tipo_cacamba} · {Number(v.capacidade_m3).toLocaleString("pt-BR")} m³</div>
+        {isAdmin && proprietarios[v.proprietario_id] && (
+          <div className="text-xs text-muted-foreground pt-1 border-t mt-2">
+            <strong>Proprietário:</strong> {proprietarios[v.proprietario_id].nome}
+          </div>
+        )}
+        {!readOnly && canEdit && v.proprietario_id === user?.id && (
+          <div className="flex gap-2 pt-3">
+            <Button size="sm" variant="outline" onClick={() => setEditing(v)}>
+              <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleDelete(v)}>
+              <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  // Admin: agrupar por perfil do proprietário
+  const frotaVehs = isAdmin ? list.filter((v) => proprietarios[v.proprietario_id]?.perfil === "frota") : [];
+  const autonomoVehs = isAdmin ? list.filter((v) => proprietarios[v.proprietario_id]?.perfil === "motorista_autonomo") : [];
+  const outrosVehs = isAdmin ? list.filter((v) => {
+    const p = proprietarios[v.proprietario_id]?.perfil;
+    return p !== "frota" && p !== "motorista_autonomo";
+  }) : [];
 
   return (
     <AppShell title={title}>
@@ -125,44 +183,46 @@ function VeiculosPage() {
           <Truck className="h-10 w-10 mx-auto mb-2 opacity-50" />
           Nenhum veículo cadastrado.
         </CardContent></Card>
+      ) : isAdmin ? (
+        <div className="space-y-8">
+          <section>
+            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Truck className="h-5 w-5 text-accent" /> Frotas
+              <Badge variant="secondary" className="ml-1">{frotaVehs.length}</Badge>
+            </h2>
+            {frotaVehs.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum veículo de frota.</p>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{frotaVehs.map(renderCard)}</div>
+            )}
+          </section>
+          <section>
+            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Truck className="h-5 w-5 text-accent" /> Autônomos
+              <Badge variant="secondary" className="ml-1">{autonomoVehs.length}</Badge>
+            </h2>
+            {autonomoVehs.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum veículo de autônomo.</p>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{autonomoVehs.map(renderCard)}</div>
+            )}
+          </section>
+          {outrosVehs.length > 0 && (
+            <section>
+              <h2 className="text-lg font-semibold mb-3">Outros</h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{outrosVehs.map(renderCard)}</div>
+            </section>
+          )}
+        </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {list.map((v) => (
-            <Card key={v.id} className="overflow-hidden">
-              <div className="aspect-video bg-muted relative">
-                {v.foto_url ? (
-                  <img src={v.foto_url} alt={v.placa} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full grid place-items-center text-muted-foreground">
-                    <Truck className="h-12 w-12 opacity-30" />
-                  </div>
-                )}
-                <Badge className="absolute top-2 right-2" variant={v.ativa ? "default" : "secondary"}>
-                  {v.ativa ? "Ativa" : "Inativa"}
-                </Badge>
-              </div>
-              <CardContent className="pt-4 space-y-1">
-                <div className="font-mono text-lg font-semibold tracking-wider">{v.placa}</div>
-                <div className="font-medium">{v.modelo}</div>
-                <div className="text-sm text-muted-foreground">{v.tipo_cacamba} · {Number(v.capacidade_m3).toLocaleString("pt-BR")} m³</div>
-                {!readOnly && canEdit && v.proprietario_id === user?.id && (
-                  <div className="flex gap-2 pt-3">
-                    <Button size="sm" variant="outline" onClick={() => setEditing(v)}>
-                      <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleDelete(v)}>
-                      <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+          {list.map(renderCard)}
         </div>
       )}
     </AppShell>
   );
 }
+
 
 function VeiculoFormDialog({
   onClose, userId, initial,

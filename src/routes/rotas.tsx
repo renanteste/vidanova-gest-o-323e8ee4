@@ -9,13 +9,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { toast } from "sonner";
-import { Plus, MapPin, Calendar, Trash2, Route as RouteIcon, Loader2 } from "lucide-react";
-import { calcularDistanciaKm, formatBRL } from "@/lib/geo";
+import { Plus, MapPin, Calendar, Trash2, Route as RouteIcon, Loader2, Pencil, Building2, UserCog } from "lucide-react";
+import { routeDistanceKm, formatBRL, geocode } from "@/lib/geo";
 
 export const Route = createFileRoute("/rotas")({
   component: () => (
@@ -29,10 +28,16 @@ type Rota = {
   id: string;
   obra: string;
   material: string;
+  construtora: string | null;
+  responsavel: string | null;
   origem_endereco: string;
   origem_complemento: string | null;
   destino_endereco: string;
   destino_complemento: string | null;
+  lat_origem: number | null;
+  lng_origem: number | null;
+  lat_destino: number | null;
+  lng_destino: number | null;
   preco_por_m3: number;
   horario_previsto: string;
   distancia_km: number | null;
@@ -42,6 +47,8 @@ type Rota = {
 
 const rotaSchema = z.object({
   obra: z.string().trim().min(2, "Informe a obra").max(120),
+  construtora: z.string().trim().min(2, "Informe a construtora").max(120),
+  responsavel: z.string().trim().max(120).optional().or(z.literal("")),
   material: z.string().trim().min(2, "Informe o material").max(120),
   origem_endereco: z.string().trim().min(5, "Endereço de origem inválido").max(300),
   origem_complemento: z.string().max(120).optional().or(z.literal("")),
@@ -53,15 +60,17 @@ const rotaSchema = z.object({
 
 function RotasPage() {
   const { user, profile } = useAuth();
+  const isAdmin = profile?.perfil === "admin";
   const [list, setList] = useState<Rota[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Rota | null>(null);
 
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase.from("rotas").select("*").order("horario_previsto", { ascending: true });
     if (error) toast.error(error.message);
-    setList((data as Rota[]) ?? []);
+    setList((data as unknown as Rota[]) ?? []);
     setLoading(false);
   };
 
@@ -82,17 +91,29 @@ function RotasPage() {
   };
 
   return (
-    <AppShell title="Rotas">
-      <div className="mb-4 flex justify-end">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
-              <Plus className="h-4 w-4 mr-1" /> Nova rota
-            </Button>
-          </DialogTrigger>
-          <RotaFormDialog userId={user!.id} onClose={() => { setOpen(false); load(); }} />
+    <AppShell title={isAdmin ? "Rotas" : "Rotas (visualização)"}>
+      {isAdmin && (
+        <div className="mb-4 flex justify-end">
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
+                <Plus className="h-4 w-4 mr-1" /> Nova rota
+              </Button>
+            </DialogTrigger>
+            <RotaFormDialog userId={user!.id} onClose={() => { setOpen(false); load(); }} />
+          </Dialog>
+        </div>
+      )}
+
+      {isAdmin && editing && (
+        <Dialog open onOpenChange={(o) => !o && setEditing(null)}>
+          <RotaFormDialog
+            userId={user!.id}
+            initial={editing}
+            onClose={() => { setEditing(null); load(); }}
+          />
         </Dialog>
-      </div>
+      )}
 
       {loading ? (
         <p className="text-muted-foreground">Carregando…</p>
@@ -110,12 +131,20 @@ function RotasPage() {
                   <div>
                     <div className="text-xs uppercase tracking-wide text-muted-foreground">{r.material}</div>
                     <div className="text-lg font-semibold">{r.obra}</div>
+                    {r.construtora && (
+                      <div className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Building2 className="h-3.5 w-3.5" /> {r.construtora}
+                      </div>
+                    )}
                   </div>
                   <Badge variant={r.status === "disponivel" ? "default" : "secondary"}>
                     {r.status === "disponivel" ? "Disponível" : "Finalizada"}
                   </Badge>
                 </div>
                 <div className="text-sm space-y-1">
+                  {r.responsavel && (
+                    <div className="flex gap-2"><UserCog className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Responsável:</strong> {r.responsavel}</div></div>
+                  )}
                   <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Origem:</strong> {r.origem_endereco}{r.origem_complemento && ` — ${r.origem_complemento}`}</div></div>
                   <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Destino:</strong> {r.destino_endereco}{r.destino_complemento && ` — ${r.destino_complemento}`}</div></div>
                   <div className="flex gap-2"><Calendar className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div>{new Date(r.horario_previsto).toLocaleString("pt-BR")}</div></div>
@@ -129,14 +158,19 @@ function RotasPage() {
                     </>
                   )}
                 </div>
-                <div className="flex gap-2 pt-1">
-                  <Button size="sm" variant="outline" onClick={() => handleStatusToggle(r)}>
-                    {r.status === "disponivel" ? "Finalizar" : "Reabrir"}
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleDelete(r)}>
-                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir
-                  </Button>
-                </div>
+                {isAdmin && (
+                  <div className="flex gap-2 pt-1 flex-wrap">
+                    <Button size="sm" variant="outline" onClick={() => setEditing(r)}>
+                      <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleStatusToggle(r)}>
+                      {r.status === "disponivel" ? "Finalizar" : "Reabrir"}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleDelete(r)}>
+                      <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -146,105 +180,170 @@ function RotasPage() {
   );
 }
 
-function RotaFormDialog({ userId, onClose }: { userId: string; onClose: () => void }) {
+function RotaFormDialog({
+  userId, initial, onClose,
+}: { userId: string; initial?: Rota; onClose: () => void }) {
   const [form, setForm] = useState({
-    obra: "", material: "",
-    origem_endereco: "", origem_complemento: "",
-    destino_endereco: "", destino_complemento: "",
-    preco_por_m3: "", horario_previsto: "",
+    obra: initial?.obra ?? "",
+    construtora: initial?.construtora ?? "",
+    responsavel: initial?.responsavel ?? "",
+    material: initial?.material ?? "",
+    origem_endereco: initial?.origem_endereco ?? "",
+    origem_complemento: initial?.origem_complemento ?? "",
+    destino_endereco: initial?.destino_endereco ?? "",
+    destino_complemento: initial?.destino_complemento ?? "",
+    preco_por_m3: initial?.preco_por_m3?.toString() ?? "",
+    horario_previsto: initial?.horario_previsto
+      ? new Date(initial.horario_previsto).toISOString().slice(0, 16)
+      : "",
   });
-  const [distancia, setDistancia] = useState<number | null>(null);
+  const [origemCoords, setOrigemCoords] = useState<{ lat: number; lon: number } | null>(
+    initial?.lat_origem != null && initial?.lng_origem != null
+      ? { lat: Number(initial.lat_origem), lon: Number(initial.lng_origem) } : null,
+  );
+  const [destinoCoords, setDestinoCoords] = useState<{ lat: number; lon: number } | null>(
+    initial?.lat_destino != null && initial?.lng_destino != null
+      ? { lat: Number(initial.lat_destino), lon: Number(initial.lng_destino) } : null,
+  );
+  const [distancia, setDistancia] = useState<number | null>(initial?.distancia_km ?? null);
   const [calculando, setCalculando] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const calcularDistancia = async () => {
-    if (!form.origem_endereco || !form.destino_endereco) {
-      toast.error("Preencha origem e destino antes");
-      return;
-    }
+  // Recalcular distância automaticamente quando ambas coords forem conhecidas
+  useEffect(() => {
+    if (!origemCoords || !destinoCoords) return;
+    let cancelled = false;
     setCalculando(true);
-    const km = await calcularDistanciaKm(form.origem_endereco, form.destino_endereco);
-    setCalculando(false);
-    if (km == null) toast.error("Não foi possível calcular a distância. Verifique os endereços.");
-    else { setDistancia(km); toast.success(`Distância: ${km} km`); }
-  };
+    routeDistanceKm(origemCoords, destinoCoords).then((km) => {
+      if (cancelled) return;
+      setCalculando(false);
+      if (km != null) setDistancia(km);
+    });
+    return () => { cancelled = true; };
+  }, [origemCoords, destinoCoords]);
+
+  const preco = parseFloat(form.preco_por_m3.replace(",", "."));
+  const valorKmM3 = distancia && preco > 0 ? preco / distancia : null;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = rotaSchema.safeParse({
-      ...form,
-      preco_por_m3: parseFloat(form.preco_por_m3.replace(",", ".")),
-    });
+    const parsed = rotaSchema.safeParse({ ...form, preco_por_m3: preco });
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
 
     setBusy(true);
-    let km = distancia;
-    if (km == null) km = await calcularDistanciaKm(parsed.data.origem_endereco, parsed.data.destino_endereco);
 
-    const { error } = await supabase.from("rotas").insert({
+    // garante coords (geocode fallback se o usuário digitou sem clicar na sugestão)
+    let oc = origemCoords;
+    let dc = destinoCoords;
+    if (!oc) oc = await geocode(parsed.data.origem_endereco);
+    if (!dc) dc = await geocode(parsed.data.destino_endereco);
+
+    let km = distancia;
+    if (oc && dc && km == null) km = await routeDistanceKm(oc, dc);
+
+    const payload = {
       obra: parsed.data.obra,
+      construtora: parsed.data.construtora,
+      responsavel: parsed.data.responsavel || null,
       material: parsed.data.material,
       origem_endereco: parsed.data.origem_endereco,
       origem_complemento: parsed.data.origem_complemento || null,
       destino_endereco: parsed.data.destino_endereco,
       destino_complemento: parsed.data.destino_complemento || null,
+      lat_origem: oc?.lat ?? null,
+      lng_origem: oc?.lon ?? null,
+      lat_destino: dc?.lat ?? null,
+      lng_destino: dc?.lon ?? null,
       preco_por_m3: parsed.data.preco_por_m3,
       horario_previsto: new Date(parsed.data.horario_previsto).toISOString(),
       distancia_km: km,
-      criada_por: userId,
-    });
+    } as any;
+
+    const { error } = initial
+      ? await supabase.from("rotas").update(payload).eq("id", initial.id)
+      : await supabase.from("rotas").insert({ ...payload, criada_por: userId });
+
     setBusy(false);
     if (error) toast.error(error.message);
-    else { toast.success("Rota criada"); onClose(); }
+    else { toast.success(initial ? "Rota atualizada" : "Rota criada"); onClose(); }
   };
 
   return (
     <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-      <DialogHeader><DialogTitle>Nova rota</DialogTitle></DialogHeader>
+      <DialogHeader><DialogTitle>{initial ? "Editar rota" : "Nova rota"}</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <Label>Obra</Label>
+            <Label>Obra *</Label>
             <Input value={form.obra} onChange={(e) => setForm({ ...form, obra: e.target.value })} placeholder="Ex: Portrait" required />
           </div>
           <div className="space-y-1">
-            <Label>Material</Label>
-            <Input value={form.material} onChange={(e) => setForm({ ...form, material: e.target.value })} placeholder="Ex: SOLO TIPO 2B" required />
+            <Label>Construtora *</Label>
+            <Input value={form.construtora} onChange={(e) => setForm({ ...form, construtora: e.target.value })} placeholder="Ex: Cyrela" required />
           </div>
-        </div>
-        <div className="space-y-1">
-          <Label>Endereço de origem</Label>
-          <Textarea rows={2} value={form.origem_endereco} onChange={(e) => setForm({ ...form, origem_endereco: e.target.value })} required />
-          <Input className="mt-1" placeholder="Complemento (opcional)" value={form.origem_complemento} onChange={(e) => setForm({ ...form, origem_complemento: e.target.value })} />
-        </div>
-        <div className="space-y-1">
-          <Label>Endereço de destino</Label>
-          <Textarea rows={2} value={form.destino_endereco} onChange={(e) => setForm({ ...form, destino_endereco: e.target.value })} required />
-          <Input className="mt-1" placeholder="Complemento (opcional)" value={form.destino_complemento} onChange={(e) => setForm({ ...form, destino_complemento: e.target.value })} />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={calcularDistancia} disabled={calculando}>
-            {calculando ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <MapPin className="h-4 w-4 mr-1" />}
-            Calcular distância
-          </Button>
-          {distancia != null && <span className="text-sm"><strong>{distancia} km</strong></span>}
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <Label>Preço por m³ (R$)</Label>
+            <Label>Material *</Label>
+            <Input value={form.material} onChange={(e) => setForm({ ...form, material: e.target.value })} placeholder="Ex: SOLO TIPO 2B" required />
+          </div>
+          <div className="space-y-1">
+            <Label>Responsável da obra</Label>
+            <Input value={form.responsavel} onChange={(e) => setForm({ ...form, responsavel: e.target.value })} placeholder="Opcional" />
+          </div>
+        </div>
+        <div className="space-y-1">
+          <Label>Endereço de origem *</Label>
+          <AddressAutocomplete
+            value={form.origem_endereco}
+            onChange={(v, coords) => {
+              setForm((f) => ({ ...f, origem_endereco: v }));
+              if (coords) setOrigemCoords(coords); else setOrigemCoords(null);
+            }}
+            required
+          />
+          <Input className="mt-1" placeholder="Complemento (opcional)" value={form.origem_complemento}
+            onChange={(e) => setForm({ ...form, origem_complemento: e.target.value })} />
+        </div>
+        <div className="space-y-1">
+          <Label>Endereço de destino *</Label>
+          <AddressAutocomplete
+            value={form.destino_endereco}
+            onChange={(v, coords) => {
+              setForm((f) => ({ ...f, destino_endereco: v }));
+              if (coords) setDestinoCoords(coords); else setDestinoCoords(null);
+            }}
+            required
+          />
+          <Input className="mt-1" placeholder="Complemento (opcional)" value={form.destino_complemento}
+            onChange={(e) => setForm({ ...form, destino_complemento: e.target.value })} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label>Preço por m³ (R$) *</Label>
             <Input type="number" step="0.01" min="0.01" value={form.preco_por_m3}
               onChange={(e) => setForm({ ...form, preco_por_m3: e.target.value })} required />
           </div>
           <div className="space-y-1">
-            <Label>Horário previsto</Label>
+            <Label>Horário previsto *</Label>
             <Input type="datetime-local" value={form.horario_previsto}
               onChange={(e) => setForm({ ...form, horario_previsto: e.target.value })} required />
+          </div>
+        </div>
+        <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm flex flex-wrap gap-x-4 gap-y-1">
+          <div className="flex items-center gap-1">
+            <strong>Distância:</strong>
+            {calculando ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> :
+              distancia != null ? `${distancia.toLocaleString("pt-BR")} km` : "—"}
+          </div>
+          <div>
+            <strong>R$/km/m³:</strong> {valorKmM3 != null ? valorKmM3.toFixed(2) : "—"}
           </div>
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
           <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={busy}>
-            {busy ? "Salvando…" : "Criar rota"}
+            {busy ? "Salvando…" : initial ? "Salvar alterações" : "Criar rota"}
           </Button>
         </DialogFooter>
       </form>

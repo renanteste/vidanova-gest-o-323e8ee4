@@ -33,7 +33,30 @@ export async function calcularDistanciaKm(origemEndereco: string, destinoEnderec
   if (!a || !b) return null;
   return routeDistanceKm(a, b);
 }
-
 export function formatBRL(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+
+export type AddressSuggestion = {
+  display_name: string;
+  lat: number;
+  lon: number;
+};
+
+export async function searchAddresses(q: string): Promise<AddressSuggestion[]> {
+  if (q.trim().length < 3) return [];
+  const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=0&limit=6&countrycodes=br&q=${encodeURIComponent(q)}`;
+  try {
+    const r = await fetch(url, { headers: { Accept: "application/json" } });
+    const data = await r.json();
+    if (!Array.isArray(data)) return [];
+    return data.map((d: any) => ({
+      display_name: d.display_name as string,
+      lat: parseFloat(d.lat),
+      lon: parseFloat(d.lon),
+    }));
+  } catch {
+    return [];
+  }
+}
+
