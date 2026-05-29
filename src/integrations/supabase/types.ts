@@ -244,52 +244,79 @@ export type Database = {
       }
       viagens: {
         Row: {
+          carregado_em: string | null
+          carregamento_iniciado_em: string | null
+          chegou_origem_em: string | null
           created_at: string
+          descarregando_em: string | null
           fim_em: string | null
+          foto_carregamento_url: string | null
           foto_fim_url: string | null
-          foto_inicio_url: string
+          foto_inicio_url: string | null
           id: string
+          indo_destino_em: string | null
           inicio_em: string
+          lat_carregamento: number | null
           lat_fim: number | null
-          lat_inicio: number
+          lat_inicio: number | null
+          lng_carregamento: number | null
           lng_fim: number | null
-          lng_inicio: number
+          lng_inicio: number | null
           motorista_id: string
           rota_id: string
+          status: Database["public"]["Enums"]["viagem_status"]
           updated_at: string
           valor_frete: number | null
           veiculo_id: string
         }
         Insert: {
+          carregado_em?: string | null
+          carregamento_iniciado_em?: string | null
+          chegou_origem_em?: string | null
           created_at?: string
+          descarregando_em?: string | null
           fim_em?: string | null
+          foto_carregamento_url?: string | null
           foto_fim_url?: string | null
-          foto_inicio_url: string
+          foto_inicio_url?: string | null
           id?: string
+          indo_destino_em?: string | null
           inicio_em?: string
+          lat_carregamento?: number | null
           lat_fim?: number | null
-          lat_inicio: number
+          lat_inicio?: number | null
+          lng_carregamento?: number | null
           lng_fim?: number | null
-          lng_inicio: number
+          lng_inicio?: number | null
           motorista_id: string
           rota_id: string
+          status?: Database["public"]["Enums"]["viagem_status"]
           updated_at?: string
           valor_frete?: number | null
           veiculo_id: string
         }
         Update: {
+          carregado_em?: string | null
+          carregamento_iniciado_em?: string | null
+          chegou_origem_em?: string | null
           created_at?: string
+          descarregando_em?: string | null
           fim_em?: string | null
+          foto_carregamento_url?: string | null
           foto_fim_url?: string | null
-          foto_inicio_url?: string
+          foto_inicio_url?: string | null
           id?: string
+          indo_destino_em?: string | null
           inicio_em?: string
+          lat_carregamento?: number | null
           lat_fim?: number | null
-          lat_inicio?: number
+          lat_inicio?: number | null
+          lng_carregamento?: number | null
           lng_fim?: number | null
-          lng_inicio?: number
+          lng_inicio?: number | null
           motorista_id?: string
           rota_id?: string
+          status?: Database["public"]["Enums"]["viagem_status"]
           updated_at?: string
           valor_frete?: number | null
           veiculo_id?: string
@@ -349,6 +376,15 @@ export type Database = {
       app_role: "admin" | "frota" | "motorista_autonomo" | "motorista_vinculado"
       interesse_status: "pendente" | "aprovado" | "rejeitado"
       rota_status: "disponivel" | "finalizada"
+      viagem_status:
+        | "pendente"
+        | "indo_origem"
+        | "no_carregamento"
+        | "carregando"
+        | "carregado"
+        | "indo_destino"
+        | "descarregando"
+        | "finalizada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -479,6 +515,16 @@ export const Constants = {
       app_role: ["admin", "frota", "motorista_autonomo", "motorista_vinculado"],
       interesse_status: ["pendente", "aprovado", "rejeitado"],
       rota_status: ["disponivel", "finalizada"],
+      viagem_status: [
+        "pendente",
+        "indo_origem",
+        "no_carregamento",
+        "carregando",
+        "carregado",
+        "indo_destino",
+        "descarregando",
+        "finalizada",
+      ],
     },
   },
 } as const
