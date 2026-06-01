@@ -1,17 +1,11 @@
-import { Link, useRouter } from "@tanstack/react-router";
-import { useAuth, perfilLabel, dashboardPathFor } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
-import { LogOut, Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox, Navigation } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useAuth, dashboardPathFor } from "@/lib/auth";
+import { ProfileMenu } from "@/components/ProfileMenu";
+import { Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox, Navigation } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
-  const { profile, signOut } = useAuth();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await signOut();
-    router.navigate({ to: "/login" });
-  };
+  const { profile } = useAuth();
 
   const perfil = profile?.perfil;
   const isMotorista = perfil === "motorista_autonomo" || perfil === "motorista_vinculado";
@@ -19,27 +13,17 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-primary text-primary-foreground">
-        <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
+        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-3">
           <Link
             to={profile ? dashboardPathFor(profile.perfil) : "/"}
-            className="flex items-center gap-2 font-semibold tracking-tight"
+            className="flex items-center gap-2 font-semibold tracking-tight min-w-0"
           >
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-accent text-accent-foreground">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-accent text-accent-foreground shrink-0">
               <Truck className="h-4 w-4" />
             </span>
-            <span className="text-base">VidaNova <span className="text-accent">Terraplenagem</span></span>
+            <span className="text-base truncate">VidaNova <span className="text-accent">Terraplenagem</span></span>
           </Link>
-          {profile && (
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:block text-right text-xs">
-                <div className="font-medium">{profile.nome}</div>
-                <div className="text-primary-foreground/70">{perfilLabel[profile.perfil]}</div>
-              </div>
-              <Button variant="secondary" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-1" /> Sair
-              </Button>
-            </div>
-          )}
+          {profile && <ProfileMenu />}
         </div>
         {profile && (
           <nav className="bg-sidebar-accent border-t border-sidebar-border">

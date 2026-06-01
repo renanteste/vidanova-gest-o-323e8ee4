@@ -13,6 +13,7 @@ import { Route as ViagensRouteImport } from './routes/viagens'
 import { Route as VeiculosRouteImport } from './routes/veiculos'
 import { Route as RotasDisponiveisRouteImport } from './routes/rotas-disponiveis'
 import { Route as RotasRouteImport } from './routes/rotas'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as MotoristasRouteImport } from './routes/motoristas'
 import { Route as MeusInteressesRouteImport } from './routes/meus-interesses'
 import { Route as LoginRouteImport } from './routes/login'
@@ -42,6 +43,11 @@ const RotasDisponiveisRoute = RotasDisponiveisRouteImport.update({
 const RotasRoute = RotasRouteImport.update({
   id: '/rotas',
   path: '/rotas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MotoristasRoute = MotoristasRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/meus-interesses': typeof MeusInteressesRoute
   '/motoristas': typeof MotoristasRoute
+  '/perfil': typeof PerfilRoute
   '/rotas': typeof RotasRoute
   '/rotas-disponiveis': typeof RotasDisponiveisRoute
   '/veiculos': typeof VeiculosRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/meus-interesses': typeof MeusInteressesRoute
   '/motoristas': typeof MotoristasRoute
+  '/perfil': typeof PerfilRoute
   '/rotas': typeof RotasRoute
   '/rotas-disponiveis': typeof RotasDisponiveisRoute
   '/veiculos': typeof VeiculosRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/meus-interesses': typeof MeusInteressesRoute
   '/motoristas': typeof MotoristasRoute
+  '/perfil': typeof PerfilRoute
   '/rotas': typeof RotasRoute
   '/rotas-disponiveis': typeof RotasDisponiveisRoute
   '/veiculos': typeof VeiculosRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/meus-interesses'
     | '/motoristas'
+    | '/perfil'
     | '/rotas'
     | '/rotas-disponiveis'
     | '/veiculos'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/meus-interesses'
     | '/motoristas'
+    | '/perfil'
     | '/rotas'
     | '/rotas-disponiveis'
     | '/veiculos'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/meus-interesses'
     | '/motoristas'
+    | '/perfil'
     | '/rotas'
     | '/rotas-disponiveis'
     | '/veiculos'
@@ -202,6 +214,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MeusInteressesRoute: typeof MeusInteressesRoute
   MotoristasRoute: typeof MotoristasRoute
+  PerfilRoute: typeof PerfilRoute
   RotasRoute: typeof RotasRoute
   RotasDisponiveisRoute: typeof RotasDisponiveisRoute
   VeiculosRoute: typeof VeiculosRoute
@@ -240,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/rotas'
       fullPath: '/rotas'
       preLoaderRoute: typeof RotasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/motoristas': {
@@ -322,6 +342,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MeusInteressesRoute: MeusInteressesRoute,
   MotoristasRoute: MotoristasRoute,
+  PerfilRoute: PerfilRoute,
   RotasRoute: RotasRoute,
   RotasDisponiveisRoute: RotasDisponiveisRoute,
   VeiculosRoute: VeiculosRoute,

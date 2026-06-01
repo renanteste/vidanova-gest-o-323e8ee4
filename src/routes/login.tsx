@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Truck } from "lucide-react";
+import { maskTelefone, maskCNH, unmask } from "@/lib/masks";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
@@ -125,8 +126,8 @@ function SignupForm() {
         emailRedirectTo: redirectUrl,
         data: {
           nome: parsed.data.nome,
-          telefone: parsed.data.telefone || null,
-          cnh: parsed.data.cnh || null,
+          telefone: unmask(parsed.data.telefone || "") || null,
+          cnh: unmask(parsed.data.cnh || "") || null,
           perfil: parsed.data.perfil,
         },
       },
@@ -162,13 +163,22 @@ function SignupForm() {
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label>Telefone</Label>
-          <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+          <Input
+            value={form.telefone}
+            onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })}
+            placeholder="(99) 9 9999-9999"
+          />
         </div>
         <div className="space-y-1">
           <Label>CNH</Label>
-          <Input value={form.cnh} onChange={(e) => setForm({ ...form, cnh: e.target.value })} />
+          <Input
+            value={form.cnh}
+            onChange={(e) => setForm({ ...form, cnh: maskCNH(e.target.value) })}
+            placeholder="99999999999"
+          />
         </div>
       </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label>Senha</Label>
