@@ -126,8 +126,8 @@ function SignupForm() {
         emailRedirectTo: redirectUrl,
         data: {
           nome: parsed.data.nome,
-          telefone: parsed.data.telefone || null,
-          cnh: parsed.data.cnh || null,
+          telefone: unmask(parsed.data.telefone || "") || null,
+          cnh: unmask(parsed.data.cnh || "") || null,
           perfil: parsed.data.perfil,
         },
       },
