@@ -177,9 +177,8 @@ function SignupForm() {
             placeholder="99999999999"
           />
         </div>
-
-        </div>
       </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label>Senha</Label>
