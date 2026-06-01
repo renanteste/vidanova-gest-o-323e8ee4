@@ -103,7 +103,9 @@ function ViagensPage() {
     setBusy(it.interesse_id);
     try {
       const pos = await getPosition();
-      const valor_frete = Number(it.rota.preco_por_m3) * Number(it.veiculo.capacidade_m3);
+      const precoM3 = Number(it.rota?.preco_por_m3 ?? 0);
+      const capacidade = Number(it.veiculo?.capacidade_m3 ?? 0);
+      const valor_frete = precoM3 * capacidade;
       const { error } = await (supabase as any).from("viagens").insert({
         rota_id: it.rota_id,
         veiculo_id: it.veiculo_id,
@@ -263,7 +265,9 @@ function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento
   const [pending, setPending] = useState<((f: File) => void) | null>(null);
   const v = item.viagem;
   const status: StatusViagem = v?.status ?? "pendente";
-  const valor = Number(item.rota.preco_por_m3) * Number(item.veiculo.capacidade_m3);
+  const precoM3 = Number(item.rota?.preco_por_m3 ?? 0);
+  const capacidade = Number(item.veiculo?.capacidade_m3 ?? 0);
+  const valor = precoM3 * capacidade;
   const dur = v?.inicio_em && v?.fim_em ? Math.round((new Date(v.fim_em).getTime() - new Date(v.inicio_em).getTime()) / 60000) : null;
 
   const trigger = (cb: (f: File) => void) => { setPending(() => cb); fileRef.current?.click(); };
@@ -272,7 +276,7 @@ function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2">
-          <span>{item.rota.obra} — <span className="text-muted-foreground font-normal">{item.rota.material}</span></span>
+          <span>{item.rota?.obra ?? "-"} — <span className="text-muted-foreground font-normal">{item.rota?.material ?? "-"}</span></span>
           <Badge variant={status === "finalizada" ? "default" : status === "pendente" ? "outline" : "secondary"}>
             {STAGES.find((s) => s.key === status)?.label}
           </Badge>
@@ -282,9 +286,9 @@ function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento
         <Timeline status={status} />
 
         <div className="grid sm:grid-cols-2 gap-2">
-          <div><strong>Origem:</strong> {item.rota.origem_endereco}</div>
-          <div><strong>Destino:</strong> {item.rota.destino_endereco}</div>
-          <div><strong>Veículo:</strong> {item.veiculo.placa} — {item.veiculo.modelo} ({Number(item.veiculo.capacidade_m3).toLocaleString("pt-BR")} m³)</div>
+          <div><strong>Origem:</strong> {item.rota?.origem_endereco ?? "-"}</div>
+          <div><strong>Destino:</strong> {item.rota?.destino_endereco ?? "-"}</div>
+          <div><strong>Veículo:</strong> {item.veiculo?.placa ?? "-"} — {item.veiculo?.modelo ?? "-"} ({Number(item.veiculo?.capacidade_m3).toLocaleString("pt-BR")} m³)</div>
           <div><strong>Frete:</strong> <span className="text-accent font-semibold">{formatBRL(valor)}</span></div>
         </div>
 
