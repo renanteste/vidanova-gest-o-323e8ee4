@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Truck } from "lucide-react";
+import { maskTelefone, maskCNH, unmask } from "@/lib/masks";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
