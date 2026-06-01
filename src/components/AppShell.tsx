@@ -1,7 +1,7 @@
-import { Link, useRouter } from "@tanstack/react-router";
-import { useAuth, perfilLabel, dashboardPathFor } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
-import { LogOut, Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox, Navigation } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useAuth, dashboardPathFor } from "@/lib/auth";
+import { ProfileMenu } from "@/components/ProfileMenu";
+import { Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox, Navigation } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
