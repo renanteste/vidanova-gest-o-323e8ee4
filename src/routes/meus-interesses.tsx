@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ClipboardList, Trash2 } from "lucide-react";
+import { ClipboardList, Trash2, MapPin, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { formatBRL } from "@/lib/geo";
 
@@ -21,7 +21,16 @@ export const Route = createFileRoute("/meus-interesses")({
 
 type Item = {
   id: string; rota_id: string; veiculo_id: string; status: "pendente" | "aprovado" | "rejeitado"; created_at: string;
-  rota?: { obra: string; material: string; preco_por_m3: number; horario_previsto: string };
+  rota?: {
+    obra: string;
+    material: string;
+    preco_por_m3: number;
+    horario_previsto: string;
+    origem_endereco?: string;
+    destino_endereco?: string;
+    construtora?: string;
+    distancia_km?: number;
+  };
   veiculo?: { placa: string; modelo: string; capacidade_m3: number };
 };
 
@@ -42,8 +51,15 @@ function MeusInteressesPage() {
     const rows = (data ?? []) as Item[];
     if (!rows.length) { setItems([]); setLoading(false); return; }
     const [r, v] = await Promise.all([
-      supabase.from("rotas").select("id, obra, material, preco_por_m3, horario_previsto").in("id", rows.map((x) => x.rota_id)),
-      supabase.from("veiculos").select("id, placa, modelo, capacidade_m3").in("id", rows.map((x) => x.veiculo_id)),
+      supabase
+        .from("rotas")
+        .select("id, obra, material, preco_por_m3, horario_previsto, origem_endereco, destino_endereco")
+        .in("id", rows.map((x) => x.rota_id)),
+
+      supabase
+        .from("veiculos")
+        .select("id, placa, modelo, capacidade_m3")
+        .in("id", rows.map((x) => x.veiculo_id)),
     ]);
     const rm = new Map((r.data ?? []).map((x: any) => [x.id, x]));
     const vm = new Map((v.data ?? []).map((x: any) => [x.id, x]));
@@ -74,22 +90,110 @@ function MeusInteressesPage() {
           {items.map((it) => {
             const total = it.rota && it.veiculo ? Number(it.rota.preco_por_m3) * Number(it.veiculo.capacidade_m3) : null;
             return (
-              <Card key={it.id}>
-                <CardContent className="pt-5 grid sm:grid-cols-[1fr_auto] gap-4 items-center">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <div className="text-lg font-semibold">{it.rota?.obra}</div>
-                      <Badge variant={it.status === "aprovado" ? "default" : it.status === "rejeitado" ? "destructive" : "secondary"}>
+              <Card
+                key={it.id}
+                className="overflow-hidden max-w-md"
+              >
+                <div className="bg-orange-50 px-5 py-4 border-b">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                        {it.rota?.material}
+                      </div>
+
+                      <h3 className="text-2xl font-semibold">
+                        {it.rota?.obra}
+                      </h3>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge className="bg-orange-500 hover:bg-orange-500">
+                        R$ {Number(it.rota?.preco_por_m3 ?? 0).toFixed(2)}/m³
+                      </Badge>
+
+                      <Badge
+                        variant={
+                          it.status === "aprovado"
+                            ? "default"
+                            : it.status === "rejeitado"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
                         {it.status}
                       </Badge>
                     </div>
-                    <div className="text-sm text-muted-foreground">{it.rota?.material}</div>
-                    <div className="text-sm"><strong>Veículo:</strong> {it.veiculo?.placa} ({Number(it.veiculo?.capacidade_m3 ?? 0).toLocaleString("pt-BR")} m³)</div>
-                    {total != null && <div className="text-sm"><strong>Frete:</strong> <span className="text-accent font-semibold">{formatBRL(total)}</span></div>}
                   </div>
-                  {it.status === "pendente" && (
-                    <Button size="sm" variant="outline" onClick={() => cancelar(it)}>
-                      <Trash2 className="h-4 w-4 mr-1" /> Cancelar
+                </div>
+
+                <CardContent className="p-5 space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <MapPin className="h-4 w-4 text-orange-500 mt-1 shrink-0" />
+                      <div className="line-clamp-1">
+                        <strong>De:</strong> {it.rota?.origem_endereco}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <MapPin className="h-4 w-4 text-orange-500 mt-1 shrink-0" />
+                      <div className="line-clamp-1">
+                        <strong>Para:</strong> {it.rota?.destino_endereco}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Calendar className="h-4 w-4 text-orange-500 mt-1 shrink-0" />
+                      <div>
+                        {it.rota?.horario_previsto
+                          ? new Date(it.rota.horario_previsto).toLocaleString("pt-BR")
+                          : "-"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {it.rota?.distancia_km && (
+                    <div className="text-muted-foreground">
+                      Distância estimada:{" "}
+                      <strong>{it.rota.distancia_km} km</strong>
+                    </div>
+                  )}
+
+                  <div className="border-t pt-3">
+                    <div className="text-sm text-muted-foreground">
+                      Valor estimado
+                      {it.veiculo?.capacidade_m3 && (
+                        <> (veículo de {it.veiculo.capacidade_m3} m³)</>
+                      )}
+                    </div>
+
+                    <div className="text-3xl font-bold text-orange-500">
+                      {total != null ? formatBRL(total) : "-"}
+                    </div>
+                  </div>
+
+                  <div className="text-sm">
+                    <strong>Veículo:</strong>{" "}
+                    {it.veiculo?.placa}
+                    {" • "}
+                    {it.veiculo?.capacidade_m3} m³
+                  </div>
+
+                  {it.status === "pendente" ? (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => cancelar(it)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Cancelar interesse
+                    </Button>
+                  ) : (
+                    <Button
+                      disabled
+                      className="w-full"
+                    >
+                      Interesse {it.status}
                     </Button>
                   )}
                 </CardContent>

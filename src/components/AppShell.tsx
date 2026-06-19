@@ -30,32 +30,32 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
             <div className="mx-auto max-w-6xl px-4 flex gap-1 text-sm overflow-x-auto">
               <NavLink to={dashboardPathFor(profile.perfil)} icon={<LayoutDashboard className="h-4 w-4" />}>Painel</NavLink>
 
-              {perfil === "admin" && (
+              {/* {perfil === "admin" && (
                 <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Todos veículos</NavLink>
-              )}
+              )} */}
               {perfil === "frota" && (
-                <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Meus veículos</NavLink>
+                <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Veículos</NavLink>
               )}
               {perfil === "motorista_autonomo" && (
                 <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Meu veículo</NavLink>
               )}
-              {perfil === "motorista_vinculado" && (
+              {/* {perfil === "motorista_vinculado" && (
                 <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Veículos da frota</NavLink>
-              )}
+              )} */}
 
               {perfil === "frota" && (
                 <NavLink to="/motoristas" icon={<UserIcon className="h-4 w-4" />}>Motoristas</NavLink>
               )}
 
-              {(perfil === "admin" || perfil === "frota") && (
+              {(perfil === "admin") && (
                 <NavLink to="/rotas" icon={<RouteIcon className="h-4 w-4" />}>Rotas</NavLink>
               )}
               {isMotorista && (
                 <NavLink to="/rotas-disponiveis" icon={<RouteIcon className="h-4 w-4" />}>Rotas disponíveis</NavLink>
               )}
-              {isMotorista && (
+              {/* {isMotorista && (
                 <NavLink to="/meus-interesses" icon={<ClipboardList className="h-4 w-4" />}>Meus interesses</NavLink>
-              )}
+              )} */}
               {isMotorista && (
                 <NavLink to="/viagens" icon={<Navigation className="h-4 w-4" />}>Minhas viagens</NavLink>
               )}
@@ -63,7 +63,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                 <NavLink to="/interesses" icon={<Inbox className="h-4 w-4" />}>Interesses</NavLink>
               )}
               {perfil === "frota" && (
-                <NavLink to="/interesses-frota" icon={<Inbox className="h-4 w-4" />}>Solicitações</NavLink>
+                <NavLink to="/interesses-frota" icon={<Inbox className="h-4 w-4" />}>Rotas</NavLink>
               )}
             </div>
           </nav>

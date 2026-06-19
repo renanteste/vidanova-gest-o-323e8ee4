@@ -123,39 +123,136 @@ function InteressesFrotaPage() {
           </TabsList>
 
           <TabsContent value="aprovadas" className="mt-4">
-            {aprovadosAdmin.length === 0 ? <Empty msg="Nenhuma rota aprovada pelo admin no momento." /> : (
+            {aprovadosAdmin.length === 0 ? (
+              <Empty msg="Nenhuma rota aprovada pelo administrador no momento." />
+            ) : (
               <div className="grid sm:grid-cols-2 gap-4">
                 {aprovadosAdmin.map((it) => {
                   const r = rotasMap.get(it.rota_id);
-                  const motDesignado = drivers.find((d) => d.user_id === it.motorista_designado_id);
-                  const vehDesignado = vehicles.find((v) => v.id === it.veiculo_designado_id);
-                  const valorTotal = r && vehDesignado ? Number(r.preco_por_m3) * Number(vehDesignado.capacidade_m3) : null;
+
+                  const motDesignado = drivers.find(
+                    (d) => d.user_id === it.motorista_designado_id
+                  );
+
+                  const vehDesignado = vehicles.find(
+                    (v) => v.id === it.veiculo_designado_id
+                  );
+
+                  const valorTotal =
+                    r && vehDesignado
+                      ? Number(r.preco_por_m3) *
+                      Number(vehDesignado.capacidade_m3)
+                      : null;
+
                   return (
                     <Card key={it.id} className="overflow-hidden">
                       <div className="bg-accent/10 px-5 py-3 flex items-center justify-between">
                         <div className="min-w-0">
-                          <div className="text-xs uppercase tracking-wide text-muted-foreground truncate">{r?.material}</div>
-                          <div className="text-lg font-semibold truncate">{r?.obra}</div>
-                        </div>
-                        <Badge className="bg-accent text-accent-foreground shrink-0">{r ? formatBRL(Number(r.preco_por_m3)) : "—"}/m³</Badge>
-                      </div>
-                      <CardContent className="pt-4 space-y-2 text-sm">
-                        {r?.construtora && <div className="flex gap-2"><Building2 className="h-4 w-4 text-accent shrink-0" /><div>{r.construtora}</div></div>}
-                        <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" /><div className="line-clamp-1"><strong>De:</strong> {r?.origem_endereco}</div></div>
-                        <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" /><div className="line-clamp-1"><strong>Para:</strong> {r?.destino_endereco}</div></div>
-                        <div className="flex gap-2"><Calendar className="h-4 w-4 text-accent shrink-0" /><div>{r ? new Date(r.horario_previsto).toLocaleString("pt-BR") : "—"}</div></div>
+                          <div className="text-xs uppercase tracking-wide text-muted-foreground truncate">
+                            {r?.material ?? "Material não disponível"}
+                          </div>
 
-                        <div className="border-t pt-2 mt-2 space-y-1">
-                          <div className="text-xs"><span className="text-muted-foreground">Admin:</span> <Badge variant="default">Aprovado</Badge></div>
-                          <div className="text-xs"><span className="text-muted-foreground">Frota:</span>{" "}
-                            <Badge variant={it.status_aprovacao_frota === "aprovado" ? "default" : it.status_aprovacao_frota === "recusado" ? "destructive" : "secondary"}>
-                              {it.status_aprovacao_frota === "aprovado" ? "Distribuído" : it.status_aprovacao_frota === "recusado" ? "Recusado" : "Pendente"}
+                          <div className="text-lg font-semibold truncate">
+                            {r?.obra ?? "Dados da rota indisponíveis"}
+                          </div>
+                        </div>
+
+                        <Badge className="bg-green-600 text-white shrink-0">
+                          Admin Aprovou
+                        </Badge>
+                      </div>
+
+                      <CardContent className="pt-4 space-y-3 text-sm">
+                        {r?.construtora && (
+                          <div className="flex gap-2">
+                            <Building2 className="h-4 w-4 text-accent shrink-0" />
+                            <div>{r.construtora}</div>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                          <div>
+                            <strong>Origem:</strong>{" "}
+                            {r?.origem_endereco ?? "Não disponível"}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                          <div>
+                            <strong>Destino:</strong>{" "}
+                            {r?.destino_endereco ?? "Não disponível"}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Calendar className="h-4 w-4 text-accent shrink-0" />
+                          <div>
+                            {r
+                              ? new Date(r.horario_previsto).toLocaleString("pt-BR")
+                              : "Data não disponível"}
+                          </div>
+                        </div>
+
+                        <div className="border-t pt-3 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">
+                              Status da Frota:
+                            </span>
+
+                            <Badge
+                              variant={
+                                it.status_aprovacao_frota === "aprovado"
+                                  ? "default"
+                                  : it.status_aprovacao_frota === "recusado"
+                                    ? "destructive"
+                                    : "secondary"
+                              }
+                            >
+                              {it.status_aprovacao_frota === "aprovado"
+                                ? "Distribuído"
+                                : it.status_aprovacao_frota === "recusado"
+                                  ? "Recusado"
+                                  : "Pendente"}
                             </Badge>
                           </div>
+
                           {it.status_aprovacao_frota === "aprovado" && (
-                            <div className="text-xs text-muted-foreground">
-                              → {motDesignado?.nome ?? "—"} · {vehDesignado?.placa ?? "—"}
-                              {valorTotal != null && <> · <strong className="text-accent">{formatBRL(valorTotal)}</strong></>}
+                            <div className="rounded-md bg-accent/10 p-3 space-y-1">
+                              <div>
+                                <strong>Motorista:</strong>{" "}
+                                {motDesignado?.nome ?? "Não definido"}
+                              </div>
+
+                              <div>
+                                <strong>Veículo:</strong>{" "}
+                                {vehDesignado
+                                  ? `${vehDesignado.placa} — ${vehDesignado.modelo}`
+                                  : "Não definido"}
+                              </div>
+
+                              {vehDesignado && (
+                                <div>
+                                  <strong>Capacidade:</strong>{" "}
+                                  {Number(
+                                    vehDesignado.capacidade_m3
+                                  ).toLocaleString("pt-BR")}{" "}
+                                  m³
+                                </div>
+                              )}
+
+                              {valorTotal != null && (
+                                <div className="pt-2">
+                                  <div className="text-xs text-muted-foreground">
+                                    Valor estimado do frete
+                                  </div>
+
+                                  <div className="text-xl font-bold text-accent">
+                                    {formatBRL(valorTotal)}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -163,19 +260,29 @@ function InteressesFrotaPage() {
                         <div className="flex flex-wrap gap-2 pt-2">
                           {it.status_aprovacao_frota === "pendente" && (
                             <>
-                              <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setDistrib(it)}>
-                                <HandHeart className="h-4 w-4 mr-1" /> Distribuir
+                              <Button
+                                size="sm"
+                                className="bg-accent text-accent-foreground hover:bg-accent/90"
+                                onClick={() => setDistrib(it)}
+                              >
+                                <HandHeart className="h-4 w-4 mr-1" />
+                                Distribuir
                               </Button>
-                              <ConfirmRecusar onConfirm={() => setFrotaStatus(it, "recusado")} />
+
+                              <ConfirmRecusar
+                                onConfirm={() =>
+                                  setFrotaStatus(it, "recusado")
+                                }
+                              />
                             </>
                           )}
+
                           {it.status_aprovacao_frota === "aprovado" && (
-                            <ConfirmCancelar onConfirm={() => setFrotaStatus(it, "pendente")} />
-                          )}
-                          {it.status_aprovacao_frota === "recusado" && (
-                            <Button size="sm" variant="outline" onClick={() => setFrotaStatus(it, "pendente")}>
-                              <RotateCcw className="h-4 w-4 mr-1" /> Reabrir
-                            </Button>
+                            <ConfirmCancelar
+                              onConfirm={() =>
+                                setFrotaStatus(it, "pendente")
+                              }
+                            />
                           )}
                         </div>
                       </CardContent>
@@ -187,18 +294,83 @@ function InteressesFrotaPage() {
           </TabsContent>
 
           <TabsContent value="pendentes" className="mt-4">
-            {pendentesAdmin.length === 0 ? <Empty msg="Nenhuma solicitação aguardando admin." /> : (
-              <ul className="space-y-2">
+            {pendentesAdmin.length === 0 ? (
+              <Empty msg="Nenhuma solicitação aguardando admin." />
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-4">
                 {pendentesAdmin.map((it) => {
                   const r = rotasMap.get(it.rota_id);
+
                   return (
-                    <Card key={it.id}><CardContent className="pt-5">
-                      <div className="font-medium">{r?.obra} <span className="text-muted-foreground text-sm">— {r?.material}</span></div>
-                      <div className="text-xs text-muted-foreground mt-1">Aguardando aprovação do administrador.</div>
-                    </CardContent></Card>
+                    <Card key={it.id} className="overflow-hidden">
+                      <div className="bg-accent/10 px-5 py-3 flex items-center justify-between">
+                        <div className="min-w-0">
+                          <div className="text-xs uppercase tracking-wide text-muted-foreground truncate">
+                            {r?.material}
+                          </div>
+                          <div className="text-lg font-semibold truncate">
+                            {r?.obra}
+                          </div>
+                        </div>
+
+                        <Badge className="bg-yellow-500 text-white shrink-0">
+                          Aguardando Admin
+                        </Badge>
+                      </div>
+
+                      <CardContent className="pt-4 space-y-2 text-sm">
+                        {r?.construtora && (
+                          <div className="flex gap-2">
+                            <Building2 className="h-4 w-4 text-accent shrink-0" />
+                            <div>{r.construtora}</div>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                          <div className="line-clamp-1">
+                            <strong>De:</strong> {r?.origem_endereco}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                          <div className="line-clamp-1">
+                            <strong>Para:</strong> {r?.destino_endereco}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Calendar className="h-4 w-4 text-accent shrink-0" />
+                          <div>
+                            {r
+                              ? new Date(r.horario_previsto).toLocaleString("pt-BR")
+                              : "—"}
+                          </div>
+                        </div>
+
+                        <div className="pt-2">
+                          <ConfirmCancelarSolicitacao
+                            onConfirm={async () => {
+                              const { error } = await supabase
+                                .from("interesses_rotas")
+                                .delete()
+                                .eq("id", it.id);
+
+                              if (error) {
+                                toast.error(error.message);
+                              } else {
+                                toast.success("Solicitação cancelada.");
+                                load();
+                              }
+                            }}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
                   );
                 })}
-              </ul>
+              </div>
             )}
           </TabsContent>
 
@@ -232,17 +404,71 @@ function InteressesFrotaPage() {
           </TabsContent>
 
           <TabsContent value="recusadas" className="mt-4">
-            {recusados.length === 0 ? <Empty msg="Nenhuma rota recusada." /> : (
-              <ul className="space-y-2">
+            {recusados.length === 0 ? (
+              <Empty msg="Nenhuma solicitação recusada." />
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-4">
                 {recusados.map((it) => {
                   const r = rotasMap.get(it.rota_id);
+
                   return (
-                    <Card key={it.id}><CardContent className="pt-5">
-                      <div className="font-medium">{r?.obra} <span className="text-muted-foreground text-sm">— {r?.material}</span></div>
-                    </CardContent></Card>
+                    <Card key={it.id} className="overflow-hidden">
+                      <div className="bg-accent/10 px-5 py-3 flex items-center justify-between">
+                        <div className="min-w-0">
+                          <div className="text-xs uppercase tracking-wide text-muted-foreground truncate">
+                            {r?.material}
+                          </div>
+                          <div className="text-lg font-semibold truncate">
+                            {r?.obra}
+                          </div>
+                        </div>
+
+                        <Badge variant="destructive">
+                          Recusada
+                        </Badge>
+                      </div>
+
+                      <CardContent className="pt-4 space-y-2 text-sm">
+                        {r?.construtora && (
+                          <div className="flex gap-2">
+                            <Building2 className="h-4 w-4 text-accent shrink-0" />
+                            <div>{r.construtora}</div>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                          <div className="line-clamp-1">
+                            <strong>De:</strong> {r?.origem_endereco}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                          <div className="line-clamp-1">
+                            <strong>Para:</strong> {r?.destino_endereco}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Calendar className="h-4 w-4 text-accent shrink-0" />
+                          <div>
+                            {r
+                              ? new Date(r.horario_previsto).toLocaleString("pt-BR")
+                              : "—"}
+                          </div>
+                        </div>
+
+                        <div className="border-t pt-3 mt-3">
+                          <div className="text-xs text-muted-foreground">
+                            Esta rota não foi aprovada pelo administrador.
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   );
                 })}
-              </ul>
+              </div>
             )}
           </TabsContent>
         </Tabs>
@@ -263,6 +489,45 @@ function InteressesFrotaPage() {
         />
       )}
     </AppShell>
+  );
+}
+function ConfirmCancelarSolicitacao({
+  onConfirm,
+}: {
+  onConfirm: () => void;
+}) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button size="sm" variant="outline" className="w-full">
+          <X className="h-4 w-4 mr-1" />
+          Cancelar solicitação
+        </Button>
+      </AlertDialogTrigger>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Cancelar solicitação?
+          </AlertDialogTitle>
+
+          <AlertDialogDescription>
+            Esta manifestação de interesse será removida e a rota
+            voltará para a lista de disponíveis.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel>
+            Voltar
+          </AlertDialogCancel>
+
+          <AlertDialogAction onClick={onConfirm}>
+            Cancelar solicitação
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
