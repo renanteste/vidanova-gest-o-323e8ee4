@@ -50,9 +50,9 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               {(perfil === "admin") && (
                 <NavLink to="/rotas" icon={<RouteIcon className="h-4 w-4" />}>Rotas</NavLink>
               )}
-              {isMotorista && (
-                <NavLink to="/rotas-disponiveis" icon={<RouteIcon className="h-4 w-4" />}>Rotas</NavLink>
-              )}
+                {perfil === "motorista_autonomo" && (
+                  <NavLink to="/rotas-disponiveis" icon={<RouteIcon className="h-4 w-4" />}>Rotas</NavLink>
+                )}
               {/* {isMotorista && (
                 <NavLink to="/meus-interesses" icon={<ClipboardList className="h-4 w-4" />}>Meus interesses</NavLink>
               )} */}

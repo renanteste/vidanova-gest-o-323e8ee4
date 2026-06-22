@@ -66,34 +66,76 @@ function ViagensPage() {
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    const { data: ints } = await (supabase as any)
-      .from("interesses_rotas")
-      .select("id, rota_id, veiculo_id")
-      .or(`motorista_id.eq.${user.id},motorista_designado_id.eq.${user.id}`)
-      .eq("status", "aprovado");
-    const rows = (ints ?? []) as any[];
-    if (!rows.length) { setItems([]); setLoading(false); return; }
 
-    const rotaIds = rows.map((r) => r.rota_id);
-    const vehIds = rows.map((r) => r.veiculo_id);
-    const [r, v, viag] = await Promise.all([
-      (supabase as any).from("rotas").select("id, obra, material, preco_por_m3, origem_endereco, destino_endereco, horario_previsto").in("id", rotaIds),
-      (supabase as any).from("veiculos").select("id, placa, modelo, capacidade_m3").in("id", vehIds),
-      (supabase as any).from("viagens").select("*").eq("motorista_id", user.id).in("rota_id", rotaIds),
-    ]);
-    const rm = new Map((r.data ?? []).map((x: any) => [x.id, x]));
-    const vm = new Map((v.data ?? []).map((x: any) => [x.id, x]));
-    const vl = (viag.data ?? []) as any[];
+    try {
+      // 1. Buscar interesses onde o motorista é o dono OU foi designado
+      const { data: ints, error: intsError } = await (supabase as any)
+        .from("interesses_rotas")
+        .select("id, rota_id, veiculo_id, status, status_aprovacao_frota")
+        .or(`motorista_id.eq.${user.id},motorista_designado_id.eq.${user.id}`);
 
-    setItems(rows.map((it) => ({
-      interesse_id: it.id,
-      rota_id: it.rota_id,
-      veiculo_id: it.veiculo_id,
-      rota: rm.get(it.rota_id),
-      veiculo: vm.get(it.veiculo_id),
-      viagem: vl.find((x) => x.rota_id === it.rota_id && x.veiculo_id === it.veiculo_id) ?? null,
-    })));
-    setLoading(false);
+      if (intsError) {
+        console.error("Erro ao buscar interesses:", intsError);
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Filtrar interesses aprovados (pelo admin OU pelo dono da frota)
+      const rows = (ints ?? []).filter(
+        (i: any) => i.status === "aprovado" || i.status_aprovacao_frota === "aprovado"
+      );
+
+      if (!rows.length) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      const rotaIds = rows.map((r: any) => r.rota_id);
+      const vehIds = rows.map((r: any) => r.veiculo_id);
+
+      // 3. Buscar rotas, veículos e viagens em paralelo
+      const [rotasRes, veiculosRes, viagensRes] = await Promise.all([
+        (supabase as any)
+          .from("rotas")
+          .select("id, obra, material, preco_por_m3, origem_endereco, destino_endereco, horario_previsto, construtora")
+          .in("id", rotaIds),
+        (supabase as any)
+          .from("veiculos")
+          .select("id, placa, modelo, capacidade_m3")
+          .in("id", vehIds),
+        (supabase as any)
+          .from("viagens")
+          .select("*")
+          .or(`motorista_id.eq.${user.id},motorista_designado_id.eq.${user.id}`)
+          .in("rota_id", rotaIds),
+      ]);
+
+      // 4. Criar maps para acesso rápido
+      const rotaMap = new Map((rotasRes.data ?? []).map((x: any) => [x.id, x]));
+      const veiculoMap = new Map((veiculosRes.data ?? []).map((x: any) => [x.id, x]));
+      const viagensList = (viagensRes.data ?? []) as any[];
+
+      // 5. Montar os items
+      const newItems = rows.map((it: any) => ({
+        interesse_id: it.id,
+        rota_id: it.rota_id,
+        veiculo_id: it.veiculo_id,
+        rota: rotaMap.get(it.rota_id),
+        veiculo: veiculoMap.get(it.veiculo_id),
+        viagem: viagensList.find(
+          (v: any) => v.rota_id === it.rota_id && v.veiculo_id === it.veiculo_id
+        ) ?? null,
+      }));
+
+      setItems(newItems);
+    } catch (error) {
+      console.error("Erro ao carregar viagens:", error);
+      toast.error("Erro ao carregar viagens");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, [user]);
