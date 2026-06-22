@@ -139,16 +139,13 @@ function ViagensPage() {
     return supabase.storage.from("viagens").getPublicUrl(path).data.publicUrl;
   };
 
-  const chegouOrigem = async (it: Item, file: File | null) => {
-    if (!file) { toast.error("Foto obrigatória"); return; }
+  const chegouOrigem = async (it: Item) => {
     setBusy(it.interesse_id);
     try {
       const pos = await getPosition();
-      const url = await uploadPhoto(it, file, "inicio");
       await (supabase as any).from("viagens").update({
         status: "no_carregamento",
         chegou_origem_em: new Date().toISOString(),
-        foto_inicio_url: url,
         lat_inicio: pos.coords.latitude,
         lng_inicio: pos.coords.longitude,
       }).eq("id", it.viagem.id);
@@ -175,16 +172,14 @@ function ViagensPage() {
     } catch (e: any) { toast.error(e.message ?? "Erro"); } finally { setBusy(null); }
   };
 
-  const finalizar = async (it: Item, file: File | null) => {
-    if (!file) { toast.error("Foto do destino obrigatória"); return; }
+  const finalizar = async (it: Item) => {
+    if (!it.viagem) { toast.error("Viagem não encontrada"); return; }
     setBusy(it.interesse_id);
     try {
       const pos = await getPosition();
-      const url = await uploadPhoto(it, file, "fim");
       await (supabase as any).from("viagens").update({
         status: "finalizada",
         fim_em: new Date().toISOString(),
-        foto_fim_url: url,
         lat_fim: pos.coords.latitude,
         lng_fim: pos.coords.longitude,
       }).eq("id", it.viagem.id);
@@ -254,12 +249,12 @@ function Timeline({ status }: { status: StatusViagem }) {
 function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento, onCarregado, onIndoDestino, onDescarregando, onFinalizar }: {
   item: Item; busy: boolean;
   onStart: (i: Item) => void;
-  onChegouOrigem: (i: Item, f: File | null) => void;
+  onChegouOrigem: (i: Item) => void;
   onIniciarCarregamento: (i: Item) => void;
-  onCarregado: (i: Item, f: File | null) => void;
+  onCarregado: (i: Item, f: File) => void;
   onIndoDestino: (i: Item) => void;
   onDescarregando: (i: Item) => void;
-  onFinalizar: (i: Item, f: File | null) => void;
+  onFinalizar: (i: Item) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<((f: File) => void) | null>(null);
@@ -312,7 +307,7 @@ function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento
             </Button>
           )}
           {status === "indo_origem" && (
-            <Button disabled={busy} onClick={() => trigger((f) => onChegouOrigem(item, f))}>
+            <Button disabled={busy} onClick={() => onChegouOrigem(item)}>
               <Camera className="h-4 w-4 mr-1" /> Cheguei na origem
             </Button>
           )}
@@ -337,7 +332,7 @@ function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento
             </Button>
           )}
           {status === "descarregando" && (
-            <Button disabled={busy} onClick={() => trigger((f) => onFinalizar(item, f))}>
+            <Button disabled={busy} onClick={() => onFinalizar(item)}>
               <Camera className="h-4 w-4 mr-1" /> Finalizar viagem
             </Button>
           )}

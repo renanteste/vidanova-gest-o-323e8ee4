@@ -53,7 +53,7 @@ function MeusInteressesPage() {
     const [r, v] = await Promise.all([
       supabase
         .from("rotas")
-        .select("id, obra, material, preco_por_m3, horario_previsto, origem_endereco, destino_endereco")
+        .select("id, obra, material, preco_por_m3, horario_previsto, origem_endereco, destino_endereco, distancia_km, construtora")
         .in("id", rows.map((x) => x.rota_id)),
 
       supabase
@@ -67,9 +67,21 @@ function MeusInteressesPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [user]);
+  useEffect(() => {
+    load();
+    if (user) {
+      const channel = supabase
+        .channel('interesses_updates')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'interesses_rotas', filter: `motorista_id=eq.${user.id}` }, () => load())
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'interesses_rotas', filter: `motorista_id=eq.${user.id}` }, () => load())
+        .subscribe();
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
 
-  const cancelar = async (it: Item) => {
+  const cancelarInteresse = async (it: Item) => {
     if (!confirm("Cancelar este interesse?")) return;
     const { error } = await supabase.from("interesses_rotas").delete().eq("id", it.id);
     if (error) toast.error(error.message);
@@ -107,7 +119,7 @@ function MeusInteressesPage() {
                     </div>
 
                     <div className="flex flex-col items-end gap-2">
-                      <Badge className="bg-orange-500 hover:bg-orange-500">
+                      <Badge className="bg-orange-500 hover:bg-orange-500 text-white">
                         R$ {Number(it.rota?.preco_por_m3 ?? 0).toFixed(2)}/m³
                       </Badge>
 
@@ -120,8 +132,22 @@ function MeusInteressesPage() {
                               : "secondary"
                         }
                       >
-                        {it.status}
+                        {it.status === "aprovado"
+                          ? "Aprovado ✅"
+                          : it.status === "rejeitado"
+                            ? "Rejeitado ❌"
+                            : "Pendente ⏳"}
                       </Badge>
+{it.status === "pendente" && (
+  <Button
+    variant="destructive"
+    size="sm"
+    onClick={() => cancelarInteresse(it)}
+    className="mt-2"
+  >
+    ❌ Cancelar solicitação
+  </Button>
+)}
                     </div>
                   </div>
                 </div>
@@ -183,7 +209,7 @@ function MeusInteressesPage() {
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() => cancelar(it)}
+                      onClick={() => cancelarInteresse(it)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Cancelar interesse

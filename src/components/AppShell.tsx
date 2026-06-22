@@ -51,13 +51,13 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                 <NavLink to="/rotas" icon={<RouteIcon className="h-4 w-4" />}>Rotas</NavLink>
               )}
               {isMotorista && (
-                <NavLink to="/rotas-disponiveis" icon={<RouteIcon className="h-4 w-4" />}>Rotas disponíveis</NavLink>
+                <NavLink to="/rotas-disponiveis" icon={<RouteIcon className="h-4 w-4" />}>Rotas</NavLink>
               )}
               {/* {isMotorista && (
                 <NavLink to="/meus-interesses" icon={<ClipboardList className="h-4 w-4" />}>Meus interesses</NavLink>
               )} */}
               {isMotorista && (
-                <NavLink to="/viagens" icon={<Navigation className="h-4 w-4" />}>Minhas viagens</NavLink>
+                <NavLink to="/viagens" icon={<Navigation className="h-4 w-4" />}>Viagens</NavLink>
               )}
               {perfil === "admin" && (
                 <NavLink to="/interesses" icon={<Inbox className="h-4 w-4" />}>Interesses</NavLink>

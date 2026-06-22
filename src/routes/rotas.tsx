@@ -62,15 +62,19 @@ function RotasPage() {
   const { user, profile } = useAuth();
   const isAdmin = profile?.perfil === "admin";
   const [list, setList] = useState<Rota[]>([]);
+  const [viagens, setViagens] = useState<any[]>([]); // trips for status check
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Rota | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("rotas").select("*").order("horario_previsto", { ascending: true });
-    if (error) toast.error(error.message);
-    setList((data as unknown as Rota[]) ?? []);
+    const { data: rotasData, error: rotasError } = await supabase.from("rotas").select("*").order("horario_previsto", { ascending: true });
+    const { data: viagensData, error: viagensError } = await supabase.from("viagens").select("rota_id,inicio_em");
+    if (rotasError) toast.error(rotasError.message);
+    if (viagensError) toast.error(viagensError.message);
+    setList((rotasData as unknown as Rota[]) ?? []);
+    setViagens(viagensData ?? []);
     setLoading(false);
   };
 
@@ -124,22 +128,22 @@ function RotasPage() {
         </CardContent></Card>
       ) : (
         <div className="grid sm:grid-cols-2 gap-4">
-          {list.map((r) => (
-            <Card key={r.id}>
-              <CardContent className="pt-5 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-muted-foreground">{r.material}</div>
-                    <div className="text-lg font-semibold">{r.obra}</div>
-                    {r.construtora && (
-                      <div className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Building2 className="h-3.5 w-3.5" /> {r.construtora}
-                      </div>
-                    )}
-                  </div>
-                  <Badge variant={r.status === "disponivel" ? "default" : "secondary"}>
-                    {r.status === "disponivel" ? "Disponível" : "Finalizada"}
-                  </Badge>
+          {list.map((r) => {
+            const started = viagens.some(v => v.rota_id === r.id && v.inicio_em);
+            return (
+              <Card key={r.id}>
+                <CardContent className="pt-5 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-muted-foreground">{r.material}</div>
+                      <div className="text-lg font-semibold">{r.obra}</div>
+                      {r.construtora && (
+                        <div className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <Building2 className="h-3.5 w-3.5" /> {r.construtora}
+                        </div>
+                      )}
+                    </div>
+                  <Badge variant={r.status === "disponivel" ? "default" : "secondary"}>{r.status === "disponivel" ? "DISPONÍVEL" : "FINALIZADA"}</Badge>
                 </div>
                 <div className="text-sm space-y-1">
                   {r.responsavel && (
@@ -160,20 +164,21 @@ function RotasPage() {
                 </div>
                 {isAdmin && (
                   <div className="flex gap-2 pt-1 flex-wrap">
-                    <Button size="sm" variant="outline" onClick={() => setEditing(r)}>
-                      <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleStatusToggle(r)}>
-                      {r.status === "disponivel" ? "Finalizar" : "Reabrir"}
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleDelete(r)}>
-                      <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir
-                    </Button>
+                    {!started && (
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => setEditing(r)}><Pencil className="h-3.5 w-3.5 mr-1" /> Editar</Button>
+                        {r.status === "disponivel" && (
+                          <Button size="sm" variant="outline" onClick={() => handleStatusToggle(r)}>Finalizar</Button>
+                        )}
+                        <Button size="sm" variant="outline" onClick={() => handleDelete(r)}><Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir</Button>
+                      </>
+                    )}
                   </div>
                 )}
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </AppShell>

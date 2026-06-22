@@ -41,6 +41,7 @@ function RotasDisponiveisPage() {
   const { user, profile } = useAuth();
   const [rotas, setRotas] = useState<Rota[]>([]);
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
+  const [interesseMap, setInteresseMap] = useState<Map<string, string>>(new Map());
   const [interesseRotaIds, setInteresseRotaIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [target, setTarget] = useState<Rota | null>(null);
@@ -48,13 +49,36 @@ function RotasDisponiveisPage() {
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    const [r, v, i] = await Promise.all([
-      supabase.from("rotas").select("*").eq("status", "disponivel").order("horario_previsto"),
+    // Load all available routes (status "disponivel")
+    const { data: rDisp, error: rDispError } = await supabase
+      .from("rotas")
+      .select("*")
+      .eq("status", "disponivel")
+      .order("horario_previsto");
+    // For linked drivers, filter routes that have been assigned by the fleet owner
+    let filteredRoutes: Rota[] = (rDisp as unknown as Rota[]) ?? [];
+    if (profile?.perfil === "motorista_vinculado") {
+      // Fetch routes assigned to the linked driver, considering both motorista_designado_id and motorista_id fields
+      const { data: assignedInts, error: assignedErr } = await supabase
+        .from("interesses_rotas")
+        .select("rota_id, status_aprovacao_frota, status")
+        .or(`motorista_designado_id.eq.${user.id},motorista_id.eq.${user.id}`)
+        .eq("status_aprovacao_frota", "aprovado");
+      if (assignedErr) toast.error(assignedErr.message);
+      // Keep rows where either the fleet approved (status_aprovacao_frota) or admin approved (status)
+      const assignedIds = new Set(
+        (assignedInts ?? []).filter((i: any) => i.status_aprovacao_frota === "aprovado" || i.status === "aprovado").map((i: any) => i.rota_id)
+      );
+      filteredRoutes = filteredRoutes.filter((r) => assignedIds.has(r.id));
+    }
+    if (rDispError) toast.error(rDispError.message);
+    setRotas(filteredRoutes);
+    const [v, i] = await Promise.all([
       supabase.from("veiculos").select("id, placa, modelo, capacidade_m3, proprietario_id").eq("ativa", true),
-      supabase.from("interesses_rotas").select("rota_id").eq("motorista_id", user.id),
+      supabase.from("interesses_rotas").select("rota_id, status").eq("motorista_id", user.id),
     ]);
-    setRotas((r.data as Rota[]) ?? []);
     setVeiculos((v.data as Veiculo[]) ?? []);
+    setInteresseMap(new Map((i.data ?? []).map((x: any) => [x.rota_id, x.status])));
     setInteresseRotaIds(new Set((i.data ?? []).map((x: any) => x.rota_id)));
     setLoading(false);
   };
@@ -78,14 +102,37 @@ function RotasDisponiveisPage() {
             const capRef = profile?.perfil === "motorista_autonomo" ? meuVeiculoAutonomo?.capacidade_m3 : null;
             const valorTotal = capRef ? Number(r.preco_por_m3) * Number(capRef) : null;
             const jaInteressado = interesseRotaIds.has(r.id);
+            const interesseStatus = interesseMap.get(r.id);
             return (
               <Card key={r.id} className="overflow-hidden">
                 <div className="bg-accent/10 px-5 py-3 flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-wide text-muted-foreground">{r.material}</div>
-                    <div className="text-lg font-semibold">{r.obra}</div>
+                    <div className="text-lg font-semibold">{r.obra} {profile?.perfil === "motorista_vinculado" && (<Badge className="ml-2 bg-blue-500 text-white">Próximas</Badge>)}</div>
                   </div>
-                  <Badge className="bg-accent text-accent-foreground">{formatBRL(Number(r.preco_por_m3))}/m³</Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge className="bg-accent text-accent-foreground">{formatBRL(Number(r.preco_por_m3))}/m³</Badge>
+                    {jaInteressado && (
+                      <Badge
+                        variant={
+                          interesseStatus === "aprovado"
+                            ? "default"
+                            : interesseStatus === "rejeitado"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
+                        {interesseStatus === "aprovado"
+                          ? "Aprovado ✅"
+                          : interesseStatus === "rejeitado"
+                            ? "Rejeitado ❌"
+                            : "Pendente ⏳"}
+                      </Badge>
+                    )}
+                    {!jaInteressado && (
+                      <Badge variant="secondary">Disponível</Badge>
+                    )}
+                  </div>
                 </div>
                 <CardContent className="pt-4 space-y-2 text-sm">
                   <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div className="line-clamp-1"><strong>De:</strong> {r.origem_endereco}</div></div>
@@ -101,11 +148,18 @@ function RotasDisponiveisPage() {
                     </div>
                   )}
                   <div className="pt-2">
-                    {jaInteressado ? (
+                    {jaInteressado && interesseStatus === "pendente" ? (
+                      <Button size="sm" variant="destructive" onClick={async () => {
+                        if (!confirm("Cancelar sua solicitação para esta rota?")) return;
+                        const { error } = await supabase.from("interesses_rotas").delete().eq("rota_id", r.id).eq("motorista_id", user!.id);
+                        if (error) toast.error(error.message);
+                        else { toast.success("Solicitação cancelada"); load(); }
+                      }}>❌ Cancelar solicitação</Button>
+                    ) : jaInteressado ? (
                       <Button size="sm" variant="outline" disabled className="w-full">Interesse já registrado</Button>
                     ) : (
                       <Button size="sm" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setTarget(r)}>
-                        <HandHeart className="h-4 w-4 mr-1" /> Tenho interesse
+                        Ver detalhes
                       </Button>
                     )}
                   </div>

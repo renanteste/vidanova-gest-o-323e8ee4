@@ -44,6 +44,7 @@ function AdminDashboard() {
   const [filtroOrigem, setFiltroOrigem] = useState("");
   const [filtroDestino, setFiltroDestino] = useState("");
   const [filtroMaterial, setFiltroMaterial] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState(""); // New status filter state
   const [fotoOpen, setFotoOpen] = useState<string | null>(null);
 
   const load = async () => {
@@ -65,6 +66,13 @@ function AdminDashboard() {
 
   const profileMap = useMemo(() => Object.fromEntries(profiles.map((p) => [p.user_id, p])), [profiles]);
 
+  const getStatus = (v: Viagem) => {
+    if (v.fim_em) return { label: "Finalizada ✅", className: "bg-green-500 text-white" };
+    if (v.inicio_em && v.foto_inicio_url) return { label: "Em andamento 🟡", className: "bg-yellow-500 text-white" };
+    if (v.inicio_em) return { label: "A caminho 🔵", className: "bg-blue-500 text-white" };
+    return { label: "Aguardando ⚪", className: "bg-gray-400 text-white" };
+  };
+
   const filtradas = useMemo(() => viagens.filter((v) => {
     const r = rotas[v.rota_id];
     if (dataIni && new Date(v.inicio_em) < new Date(dataIni)) return false;
@@ -72,8 +80,9 @@ function AdminDashboard() {
     if (filtroOrigem && !r?.origem_endereco?.toLowerCase().includes(filtroOrigem.toLowerCase())) return false;
     if (filtroDestino && !r?.destino_endereco?.toLowerCase().includes(filtroDestino.toLowerCase())) return false;
     if (filtroMaterial && !r?.material?.toLowerCase().includes(filtroMaterial.toLowerCase())) return false;
+    if (filtroStatus && getStatus(v).label !== filtroStatus) return false;
     return true;
-  }), [viagens, rotas, dataIni, dataFim, filtroOrigem, filtroDestino, filtroMaterial]);
+  }), [viagens, rotas, dataIni, dataFim, filtroOrigem, filtroDestino, filtroMaterial, filtroStatus]);
 
   // métricas
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
@@ -150,6 +159,16 @@ function AdminDashboard() {
               <div><Label>Origem</Label><Input value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)} placeholder="Cidade/rua" /></div>
               <div><Label>Destino</Label><Input value={filtroDestino} onChange={(e) => setFiltroDestino(e.target.value)} placeholder="Cidade/rua" /></div>
               <div><Label>Material</Label><Input value={filtroMaterial} onChange={(e) => setFiltroMaterial(e.target.value)} placeholder="Ex: SOLO 2B" /></div>
+              <div>
+                <Label>Status</Label>
+                <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} className="w-full rounded-md border border-gray-200 p-2">
+                  <option value="">Todos</option>
+                  <option value="Finalizada ✅">Finalizada ✅</option>
+                  <option value="Em andamento 🟡">Em andamento 🟡</option>
+                  <option value="A caminho 🔵">A caminho 🔵</option>
+                  <option value="Aguardando ⚪">Aguardando ⚪</option>
+                </select>
+              </div>
               <div className="sm:col-span-5 flex justify-end">
                 <Button onClick={exportCSV} variant="outline"><Download className="h-4 w-4 mr-1" /> Exportar CSV</Button>
               </div>
@@ -166,6 +185,7 @@ function AdminDashboard() {
                     <TableHead>Foto</TableHead><TableHead>Início</TableHead><TableHead>Obra</TableHead>
                     <TableHead>Material</TableHead><TableHead>Motorista</TableHead><TableHead>Veículo</TableHead>
                     <TableHead>GPS</TableHead><TableHead className="text-right">Frete</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
                     {filtradas.map((v) => {
@@ -191,6 +211,7 @@ function AdminDashboard() {
                             </a>
                           </TableCell>
                           <TableCell className="text-right font-medium">{v.valor_frete ? formatBRL(Number(v.valor_frete)) : "—"}</TableCell>
+                          <TableCell><Badge className={getStatus(v).className}>{getStatus(v).label}</Badge></TableCell>
                         </TableRow>
                       );
                     })}
