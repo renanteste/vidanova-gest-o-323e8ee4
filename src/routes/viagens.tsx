@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Camera, Check, MapPin, Navigation, Package, PackageCheck, PlayCircle, Truck } from "lucide-react";
+import { Camera, Check, MapPin, Navigation, Package, PackageCheck, PlayCircle, Truck, ChevronLeft } from "lucide-react";
 import { formatBRL } from "@/lib/geo";
 
 export const Route = createFileRoute("/viagens")({
@@ -121,6 +121,7 @@ function ViagensPage() {
     } catch (e: any) { toast.error(e.message ?? "Erro"); } finally { setBusy(null); }
   };
 
+
   const advanceSimple = async (it: Item, patch: any, msg: string) => {
     if (!it.viagem) return;
     setBusy(it.interesse_id);
@@ -131,7 +132,40 @@ function ViagensPage() {
       load();
     } catch (e: any) { toast.error(e.message ?? "Erro"); } finally { setBusy(null); }
   };
+  const goBack = async (it: Item, statusAtual: StatusViagem) => {
+    if (!it.viagem) return;
 
+    const anterior: Record<StatusViagem, StatusViagem> = {
+      pendente: "pendente",
+      indo_origem: "pendente",
+      no_carregamento: "indo_origem",
+      carregando: "no_carregamento",
+      carregado: "carregando",
+      indo_destino: "carregado",
+      descarregando: "indo_destino",
+      finalizada: "descarregando",
+    };
+
+    setBusy(it.interesse_id);
+
+    try {
+      const { error } = await (supabase as any)
+        .from("viagens")
+        .update({
+          status: anterior[statusAtual],
+        })
+        .eq("id", it.viagem.id);
+
+      if (error) throw error;
+
+      toast.success("Etapa retornada");
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro");
+    } finally {
+      setBusy(null);
+    }
+  };
   const uploadPhoto = async (it: Item, file: File, kind: "inicio" | "carregamento" | "fim") => {
     const path = `${user!.id}/${it.rota_id}/${kind}_${Date.now()}.jpg`;
     const up = await supabase.storage.from("viagens").upload(path, file, { contentType: file.type || "image/jpeg" });
@@ -214,6 +248,7 @@ function ViagensPage() {
               onIndoDestino={(i) => advanceSimple(i, { status: "indo_destino", indo_destino_em: new Date().toISOString() }, "A caminho do destino")}
               onDescarregando={(i) => advanceSimple(i, { status: "descarregando", descarregando_em: new Date().toISOString() }, "Descarregando")}
               onFinalizar={finalizar}
+              goBack={goBack}
             />
           ))}
         </div>
@@ -246,7 +281,7 @@ function Timeline({ status }: { status: StatusViagem }) {
   );
 }
 
-function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento, onCarregado, onIndoDestino, onDescarregando, onFinalizar }: {
+function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento, onCarregado, onIndoDestino, onDescarregando, onFinalizar, goBack }: {
   item: Item; busy: boolean;
   onStart: (i: Item) => void;
   onChegouOrigem: (i: Item) => void;
@@ -255,6 +290,7 @@ function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento
   onIndoDestino: (i: Item) => void;
   onDescarregando: (i: Item) => void;
   onFinalizar: (i: Item) => void;
+  goBack: (i: Item, s: StatusViagem) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<((f: File) => void) | null>(null);
@@ -301,6 +337,16 @@ function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento
           onChange={(e) => { const f = e.target.files?.[0]; if (f && pending) pending(f); e.currentTarget.value = ""; }} />
 
         <div className="flex flex-wrap gap-2 pt-1">
+          {status !== "pendente" && status !== "finalizada" && (
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => goBack(item, status)}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Voltar etapa
+            </Button>
+          )}
           {status === "pendente" && (
             <Button disabled={busy} onClick={() => onStart(item)} className="bg-accent text-accent-foreground hover:bg-accent/90">
               <PlayCircle className="h-4 w-4 mr-1" /> Iniciar viagem
@@ -308,7 +354,7 @@ function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento
           )}
           {status === "indo_origem" && (
             <Button disabled={busy} onClick={() => onChegouOrigem(item)}>
-              <Camera className="h-4 w-4 mr-1" /> Cheguei na origem
+              <Navigation className="h-4 w-4 mr-1" /> Cheguei na origem
             </Button>
           )}
           {status === "no_carregamento" && (
@@ -333,7 +379,7 @@ function ViagemCard({ item, busy, onStart, onChegouOrigem, onIniciarCarregamento
           )}
           {status === "descarregando" && (
             <Button disabled={busy} onClick={() => onFinalizar(item)}>
-              <Camera className="h-4 w-4 mr-1" /> Finalizar viagem
+              <Check className="h-4 w-4 mr-1" /> Finalizar viagem
             </Button>
           )}
 
