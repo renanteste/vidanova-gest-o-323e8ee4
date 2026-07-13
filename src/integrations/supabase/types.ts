@@ -343,6 +343,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      frota_has_interest_on_rota: {
+        Args: { _frota_user: string; _rota_id: string }
+        Returns: boolean
+      }
       get_frota_id: { Args: { _user_id: string }; Returns: string }
       get_perfil: {
         Args: { _user_id: string }
@@ -361,6 +365,10 @@ export type Database = {
       }
       has_vehicle_assignment: {
         Args: { _user_id: string; _veiculo_id: string }
+        Returns: boolean
+      }
+      has_viagem_for_rota: {
+        Args: { _rota_id: string; _user_id: string }
         Returns: boolean
       }
       is_motorista_of_frota: {
