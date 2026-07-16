@@ -206,7 +206,7 @@ function AdminDashboard() {
           <TabsTrigger value="relatorio">Relatório de viagens</TabsTrigger>
           <TabsTrigger value="ranking">Ranking</TabsTrigger>
           <TabsTrigger value="usuarios">Usuários</TabsTrigger>
-          <TabsTrigger value="veiculos">Veículos não utilizados</TabsTrigger>
+          <TabsTrigger value="veiculos">Veículos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="relatorio" className="space-y-4">
