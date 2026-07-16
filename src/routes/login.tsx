@@ -94,10 +94,6 @@ function LoginForm() {
       <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={busy}>
         {busy ? "Entrando…" : "Entrar"}
       </Button>
-      <div className="text-xs text-muted-foreground text-center pt-2">
-        Contas de teste de Admin: <br />
-        <code>admin1@vidanova.com</code> / <code>admin2@vidanova.com</code> · senha <code>Admin@123</code>
-      </div>
     </form>
   );
 }
