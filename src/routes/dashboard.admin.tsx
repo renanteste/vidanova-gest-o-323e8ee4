@@ -228,8 +228,9 @@ function AdminDashboard() {
                   <option value="Aguardando ⚪">Aguardando ⚪</option>
                 </select>
               </div>
-              <div className="sm:col-span-5 flex justify-end">
-                <Button onClick={exportCSV} variant="outline"><Download className="h-4 w-4 mr-1" /> Exportar CSV</Button>
+              <div className="sm:col-span-5 flex justify-end gap-2">
+                <Button onClick={exportCSV} variant="outline"><Download className="h-4 w-4 mr-1" /> Exportar Excel</Button>
+                <Button onClick={exportPDF} variant="outline"><FileText className="h-4 w-4 mr-1" /> Exportar PDF</Button>
               </div>
             </CardContent>
           </Card>
