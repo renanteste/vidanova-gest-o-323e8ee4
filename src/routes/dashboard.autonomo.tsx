@@ -78,6 +78,22 @@ function AutonomoDashboard() {
         <Kpi icon={DollarSign} label="Total recebido" value={formatBRL(totalValor)} />
       </div>
 
+      <Card className="mb-4">
+        <CardHeader><CardTitle className="text-base">Filtros</CardTitle></CardHeader>
+        <CardContent className="grid sm:grid-cols-3 gap-3">
+          <div><Label>De</Label><Input type="date" value={dataIni} onChange={(e) => setDataIni(e.target.value)} /></div>
+          <div><Label>Até</Label><Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} /></div>
+          <div>
+            <Label>Veículo</Label>
+            <select value={filtroVeiculo} onChange={(e) => setFiltroVeiculo(e.target.value)} className="w-full rounded-md border border-gray-200 p-2">
+              <option value="">Todos</option>
+              {vehicle && <option value={vehicle.id}>{vehicle.placa} — {vehicle.modelo}</option>}
+            </select>
+          </div>
+        </CardContent>
+      </Card>
+
+
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><Truck className="h-5 w-5 text-accent" /> Meu veículo</CardTitle></CardHeader>
