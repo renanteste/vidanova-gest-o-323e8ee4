@@ -334,11 +334,11 @@ function AdminDashboard() {
         <TabsContent value="veiculos">
           <Card>
             <CardContent className="pt-4">
-              {veiculosNaoUsados.length === 0 ? <p className="text-muted-foreground">Todos os veículos já participaram de alguma viagem.</p> : (
+              {todosVeiculos.length === 0 ? <p className="text-muted-foreground">Nenhum veículo cadastrado.</p> : (
                 <Table>
                   <TableHeader><TableRow><TableHead>Placa</TableHead><TableHead>Modelo</TableHead><TableHead className="text-right">Capacidade</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {veiculosNaoUsados.map((v: any) => (
+                    {todosVeiculos.map((v: any) => (
                       <TableRow key={v.id}>
                         <TableCell>{v.placa}</TableCell><TableCell>{v.modelo}</TableCell>
                         <TableCell className="text-right">{Number(v.capacidade_m3).toLocaleString("pt-BR")} m³</TableCell>
