@@ -44,8 +44,21 @@ function AutonomoDashboard() {
     })();
   }, [user]);
 
-  const finalizadas = viagens.filter((v) => v.status === "finalizada");
-  const emAndamento = viagens.filter((v) => v.status && v.status !== "finalizada");
+  // filtros
+  const [dataIni, setDataIni] = useState("");
+  const [dataFim, setDataFim] = useState("");
+  const [filtroVeiculo, setFiltroVeiculo] = useState("");
+
+  const viagensFiltradas = useMemo(() => viagens.filter((v) => {
+    const ref = v.inicio_em ?? v.created_at;
+    if (dataIni && ref && new Date(ref) < new Date(dataIni)) return false;
+    if (dataFim && ref && new Date(ref) > new Date(dataFim + "T23:59:59")) return false;
+    if (filtroVeiculo && v.veiculo_id !== filtroVeiculo) return false;
+    return true;
+  }), [viagens, dataIni, dataFim, filtroVeiculo]);
+
+  const finalizadas = viagensFiltradas.filter((v) => v.status === "finalizada");
+  const emAndamento = viagensFiltradas.filter((v) => v.status && v.status !== "finalizada");
   const totalValor = finalizadas.reduce((s, v) => s + Number(v.valor_frete ?? 0), 0);
   const totalM3 = finalizadas.length * Number(vehicle?.capacidade_m3 ?? 0);
   const proximasCount = Math.max(0, aprovadas.length - viagens.length);
