@@ -125,6 +125,64 @@ function AdminDashboard() {
     URL.revokeObjectURL(url);
   };
 
+  const exportPDF = async () => {
+    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+    doc.setFontSize(14);
+    doc.text("Relatório de Viagens", 40, 30);
+    doc.setFontSize(9);
+    doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, 40, 46);
+
+    // preload images
+    const imgs: Record<string, string> = {};
+    await Promise.all(filtradas.map(async (v) => {
+      if (!v.foto_inicio_url) return;
+      try {
+        const res = await fetch(v.foto_inicio_url);
+        const blob = await res.blob();
+        const dataUrl: string = await new Promise((resolve) => {
+          const fr = new FileReader(); fr.onload = () => resolve(fr.result as string); fr.readAsDataURL(blob);
+        });
+        imgs[v.id] = dataUrl;
+      } catch { /* ignore */ }
+    }));
+
+    const body = filtradas.map((v) => {
+      const r = rotas[v.rota_id] ?? {}; const ve = veiculos[v.veiculo_id] ?? {};
+      return [
+        "", // foto slot
+        profileMap[v.motorista_id]?.nome ?? "—",
+        `${ve.placa ?? "—"}\n${ve.modelo ?? ""}`,
+        r.origem_endereco ?? "—",
+        r.destino_endereco ?? "—",
+        new Date(v.inicio_em).toLocaleString("pt-BR"),
+        v.valor_frete != null ? formatBRL(Number(v.valor_frete)) : "—",
+        getStatus(v).label,
+      ];
+    });
+
+    autoTable(doc, {
+      head: [["Foto", "Motorista", "Veículo", "Origem", "Destino", "Data", "Frete", "Status"]],
+      body,
+      startY: 60,
+      styles: { fontSize: 8, cellPadding: 3, valign: "middle" },
+      headStyles: { fillColor: [30, 41, 59] },
+      columnStyles: { 0: { cellWidth: 40 }, 3: { cellWidth: 120 }, 4: { cellWidth: 120 } },
+      didDrawCell: (data) => {
+        if (data.section === "body" && data.column.index === 0) {
+          const v = filtradas[data.row.index];
+          const img = v && imgs[v.id];
+          if (img) {
+            try {
+              doc.addImage(img, "JPEG", data.cell.x + 2, data.cell.y + 2, 36, 24);
+            } catch { /* ignore */ }
+          }
+        }
+      },
+      bodyStyles: { minCellHeight: 30 },
+    });
+    doc.save(`viagens_${Date.now()}.pdf`);
+  };
+
   const toggleAtivo = async (uid: string, ativo: boolean) => {
     const { error } = await (supabase as any).from("profiles").update({ ativo: !ativo }).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
@@ -132,8 +190,7 @@ function AdminDashboard() {
     load();
   };
 
-  const veiculosUsados = new Set(viagens.map((v) => v.veiculo_id));
-  const veiculosNaoUsados = Object.values(veiculos).filter((v: any) => !veiculosUsados.has(v.id));
+  const todosVeiculos = Object.values(veiculos);
 
   return (
     <AppShell title="Painel do Administrador">
