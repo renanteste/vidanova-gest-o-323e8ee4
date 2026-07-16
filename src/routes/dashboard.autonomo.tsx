@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Truck, DollarSign, Package, Activity } from "lucide-react";
@@ -42,8 +44,21 @@ function AutonomoDashboard() {
     })();
   }, [user]);
 
-  const finalizadas = viagens.filter((v) => v.status === "finalizada");
-  const emAndamento = viagens.filter((v) => v.status && v.status !== "finalizada");
+  // filtros
+  const [dataIni, setDataIni] = useState("");
+  const [dataFim, setDataFim] = useState("");
+  const [filtroVeiculo, setFiltroVeiculo] = useState("");
+
+  const viagensFiltradas = useMemo(() => viagens.filter((v) => {
+    const ref = v.inicio_em ?? v.created_at;
+    if (dataIni && ref && new Date(ref) < new Date(dataIni)) return false;
+    if (dataFim && ref && new Date(ref) > new Date(dataFim + "T23:59:59")) return false;
+    if (filtroVeiculo && v.veiculo_id !== filtroVeiculo) return false;
+    return true;
+  }), [viagens, dataIni, dataFim, filtroVeiculo]);
+
+  const finalizadas = viagensFiltradas.filter((v) => v.status === "finalizada");
+  const emAndamento = viagensFiltradas.filter((v) => v.status && v.status !== "finalizada");
   const totalValor = finalizadas.reduce((s, v) => s + Number(v.valor_frete ?? 0), 0);
   const totalM3 = finalizadas.length * Number(vehicle?.capacidade_m3 ?? 0);
   const proximasCount = Math.max(0, aprovadas.length - viagens.length);
@@ -62,6 +77,22 @@ function AutonomoDashboard() {
         <Kpi icon={Package} label="m³ transportado" value={totalM3.toLocaleString("pt-BR")} />
         <Kpi icon={DollarSign} label="Total recebido" value={formatBRL(totalValor)} />
       </div>
+
+      <Card className="mb-4">
+        <CardHeader><CardTitle className="text-base">Filtros</CardTitle></CardHeader>
+        <CardContent className="grid sm:grid-cols-3 gap-3">
+          <div><Label>De</Label><Input type="date" value={dataIni} onChange={(e) => setDataIni(e.target.value)} /></div>
+          <div><Label>Até</Label><Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} /></div>
+          <div>
+            <Label>Veículo</Label>
+            <select value={filtroVeiculo} onChange={(e) => setFiltroVeiculo(e.target.value)} className="w-full rounded-md border border-gray-200 p-2">
+              <option value="">Todos</option>
+              {vehicle && <option value={vehicle.id}>{vehicle.placa} — {vehicle.modelo}</option>}
+            </select>
+          </div>
+        </CardContent>
+      </Card>
+
 
       <div className="grid md:grid-cols-2 gap-4">
         <Card>

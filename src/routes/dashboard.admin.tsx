@@ -11,9 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, Truck, Route as RouteIcon, Package, Download, MapPin, Ban, CheckCircle2 } from "lucide-react";
+import { Users, Truck, Route as RouteIcon, Package, Download, MapPin, Ban, CheckCircle2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { formatBRL } from "@/lib/geo";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export const Route = createFileRoute("/dashboard/admin")({
   component: () => (
@@ -123,6 +125,64 @@ function AdminDashboard() {
     URL.revokeObjectURL(url);
   };
 
+  const exportPDF = async () => {
+    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+    doc.setFontSize(14);
+    doc.text("Relatório de Viagens", 40, 30);
+    doc.setFontSize(9);
+    doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, 40, 46);
+
+    // preload images
+    const imgs: Record<string, string> = {};
+    await Promise.all(filtradas.map(async (v) => {
+      if (!v.foto_inicio_url) return;
+      try {
+        const res = await fetch(v.foto_inicio_url);
+        const blob = await res.blob();
+        const dataUrl: string = await new Promise((resolve) => {
+          const fr = new FileReader(); fr.onload = () => resolve(fr.result as string); fr.readAsDataURL(blob);
+        });
+        imgs[v.id] = dataUrl;
+      } catch { /* ignore */ }
+    }));
+
+    const body = filtradas.map((v) => {
+      const r = rotas[v.rota_id] ?? {}; const ve = veiculos[v.veiculo_id] ?? {};
+      return [
+        "", // foto slot
+        profileMap[v.motorista_id]?.nome ?? "—",
+        `${ve.placa ?? "—"}\n${ve.modelo ?? ""}`,
+        r.origem_endereco ?? "—",
+        r.destino_endereco ?? "—",
+        new Date(v.inicio_em).toLocaleString("pt-BR"),
+        v.valor_frete != null ? formatBRL(Number(v.valor_frete)) : "—",
+        getStatus(v).label,
+      ];
+    });
+
+    autoTable(doc, {
+      head: [["Foto", "Motorista", "Veículo", "Origem", "Destino", "Data", "Frete", "Status"]],
+      body,
+      startY: 60,
+      styles: { fontSize: 8, cellPadding: 3, valign: "middle" },
+      headStyles: { fillColor: [30, 41, 59] },
+      columnStyles: { 0: { cellWidth: 40 }, 3: { cellWidth: 120 }, 4: { cellWidth: 120 } },
+      didDrawCell: (data) => {
+        if (data.section === "body" && data.column.index === 0) {
+          const v = filtradas[data.row.index];
+          const img = v && imgs[v.id];
+          if (img) {
+            try {
+              doc.addImage(img, "JPEG", data.cell.x + 2, data.cell.y + 2, 36, 24);
+            } catch { /* ignore */ }
+          }
+        }
+      },
+      bodyStyles: { minCellHeight: 30 },
+    });
+    doc.save(`viagens_${Date.now()}.pdf`);
+  };
+
   const toggleAtivo = async (uid: string, ativo: boolean) => {
     const { error } = await (supabase as any).from("profiles").update({ ativo: !ativo }).eq("user_id", uid);
     if (error) { toast.error(error.message); return; }
@@ -130,8 +190,7 @@ function AdminDashboard() {
     load();
   };
 
-  const veiculosUsados = new Set(viagens.map((v) => v.veiculo_id));
-  const veiculosNaoUsados = Object.values(veiculos).filter((v: any) => !veiculosUsados.has(v.id));
+  const todosVeiculos = Object.values(veiculos);
 
   return (
     <AppShell title="Painel do Administrador">
@@ -147,7 +206,7 @@ function AdminDashboard() {
           <TabsTrigger value="relatorio">Relatório de viagens</TabsTrigger>
           <TabsTrigger value="ranking">Ranking</TabsTrigger>
           <TabsTrigger value="usuarios">Usuários</TabsTrigger>
-          <TabsTrigger value="veiculos">Veículos não utilizados</TabsTrigger>
+          <TabsTrigger value="veiculos">Veículos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="relatorio" className="space-y-4">
@@ -169,8 +228,9 @@ function AdminDashboard() {
                   <option value="Aguardando ⚪">Aguardando ⚪</option>
                 </select>
               </div>
-              <div className="sm:col-span-5 flex justify-end">
+              <div className="sm:col-span-5 flex justify-end gap-2">
                 <Button onClick={exportCSV} variant="outline"><Download className="h-4 w-4 mr-1" /> Exportar CSV</Button>
+                <Button onClick={exportPDF} variant="outline"><FileText className="h-4 w-4 mr-1" /> Exportar PDF</Button>
               </div>
             </CardContent>
           </Card>
@@ -274,11 +334,11 @@ function AdminDashboard() {
         <TabsContent value="veiculos">
           <Card>
             <CardContent className="pt-4">
-              {veiculosNaoUsados.length === 0 ? <p className="text-muted-foreground">Todos os veículos já participaram de alguma viagem.</p> : (
+              {todosVeiculos.length === 0 ? <p className="text-muted-foreground">Nenhum veículo cadastrado.</p> : (
                 <Table>
                   <TableHeader><TableRow><TableHead>Placa</TableHead><TableHead>Modelo</TableHead><TableHead className="text-right">Capacidade</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {veiculosNaoUsados.map((v: any) => (
+                    {todosVeiculos.map((v: any) => (
                       <TableRow key={v.id}>
                         <TableCell>{v.placa}</TableCell><TableCell>{v.modelo}</TableCell>
                         <TableCell className="text-right">{Number(v.capacidade_m3).toLocaleString("pt-BR")} m³</TableCell>
