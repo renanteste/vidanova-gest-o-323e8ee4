@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Send } from "lucide-react";
+import { getLastPath } from "@/lib/last-path";
 
 export const Route = createFileRoute("/enviar-sugestao")({
   head: () => ({
