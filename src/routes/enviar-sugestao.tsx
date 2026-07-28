@@ -43,7 +43,6 @@ function EnviarSugestaoPage() {
   const [descricao, setDescricao] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const pagina = previousPath;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
