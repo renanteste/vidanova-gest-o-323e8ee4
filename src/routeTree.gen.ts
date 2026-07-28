@@ -19,6 +19,7 @@ import { Route as MeusInteressesRouteImport } from './routes/meus-interesses'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InteressesFrotaRouteImport } from './routes/interesses-frota'
 import { Route as InteressesRouteImport } from './routes/interesses'
+import { Route as EnviarSugestaoRouteImport } from './routes/enviar-sugestao'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardVinculadoRouteImport } from './routes/dashboard.vinculado'
 import { Route as DashboardFrotaRouteImport } from './routes/dashboard.frota'
@@ -75,6 +76,11 @@ const InteressesRoute = InteressesRouteImport.update({
   path: '/interesses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnviarSugestaoRoute = EnviarSugestaoRouteImport.update({
+  id: '/enviar-sugestao',
+  path: '/enviar-sugestao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -103,6 +109,7 @@ const DashboardAdminRoute = DashboardAdminRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/enviar-sugestao': typeof EnviarSugestaoRoute
   '/interesses': typeof InteressesRoute
   '/interesses-frota': typeof InteressesFrotaRoute
   '/login': typeof LoginRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/enviar-sugestao': typeof EnviarSugestaoRoute
   '/interesses': typeof InteressesRoute
   '/interesses-frota': typeof InteressesFrotaRoute
   '/login': typeof LoginRoute
@@ -138,6 +146,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/enviar-sugestao': typeof EnviarSugestaoRoute
   '/interesses': typeof InteressesRoute
   '/interesses-frota': typeof InteressesFrotaRoute
   '/login': typeof LoginRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/enviar-sugestao'
     | '/interesses'
     | '/interesses-frota'
     | '/login'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/enviar-sugestao'
     | '/interesses'
     | '/interesses-frota'
     | '/login'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/enviar-sugestao'
     | '/interesses'
     | '/interesses-frota'
     | '/login'
@@ -209,6 +221,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EnviarSugestaoRoute: typeof EnviarSugestaoRoute
   InteressesRoute: typeof InteressesRoute
   InteressesFrotaRoute: typeof InteressesFrotaRoute
   LoginRoute: typeof LoginRoute
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InteressesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/enviar-sugestao': {
+      id: '/enviar-sugestao'
+      path: '/enviar-sugestao'
+      fullPath: '/enviar-sugestao'
+      preLoaderRoute: typeof EnviarSugestaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -337,6 +357,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EnviarSugestaoRoute: EnviarSugestaoRoute,
   InteressesRoute: InteressesRoute,
   InteressesFrotaRoute: InteressesFrotaRoute,
   LoginRoute: LoginRoute,
