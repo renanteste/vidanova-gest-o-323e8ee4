@@ -1,11 +1,18 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useAuth, dashboardPathFor } from "@/lib/auth";
 import { ProfileMenu } from "@/components/ProfileMenu";
-import { Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox, Navigation } from "lucide-react";
+import { recordLastPath } from "@/lib/last-path";
+import { Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox, Navigation, MessageSquarePlus, MessagesSquare } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
   const { profile } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    recordLastPath(pathname);
+  }, [pathname]);
 
   const perfil = profile?.perfil;
   const isMotorista = perfil === "motorista_autonomo" || perfil === "motorista_vinculado";
