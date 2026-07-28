@@ -35,9 +35,8 @@ const TIPOS = ["Sugestão", "Problema", "Dúvida"];
 
 function EnviarSugestaoPage() {
   const { user, profile } = useAuth();
-  const previousPath = useRouterState({
-    select: (s) => s.location.pathname,
-  });
+  const [pagina] = useState(() => getLastPath());
+
 
   const [tipo, setTipo] = useState("");
   const [titulo, setTitulo] = useState("");
