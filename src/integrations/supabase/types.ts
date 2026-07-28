@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      feedbacks: {
+        Row: {
+          created_at: string
+          descricao: string
+          email_usuario: string | null
+          id: string
+          nome_usuario: string | null
+          pagina: string | null
+          perfil_usuario: string | null
+          resolucao: string | null
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          email_usuario?: string | null
+          id?: string
+          nome_usuario?: string | null
+          pagina?: string | null
+          perfil_usuario?: string | null
+          resolucao?: string | null
+          status?: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          email_usuario?: string | null
+          id?: string
+          nome_usuario?: string | null
+          pagina?: string | null
+          perfil_usuario?: string | null
+          resolucao?: string | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       interesses_rotas: {
         Row: {
           aprovado_frota_em: string | null
