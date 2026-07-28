@@ -72,6 +72,10 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               {perfil === "frota" && (
                 <NavLink to="/interesses-frota" icon={<Inbox className="h-4 w-4" />}>Rotas</NavLink>
               )}
+              {perfil === "admin" && (
+                <NavLink to="/feedbacks" icon={<MessagesSquare className="h-4 w-4" />}>Feedbacks</NavLink>
+              )}
+              <NavLink to="/enviar-sugestao" icon={<MessageSquarePlus className="h-4 w-4" />}>Enviar sugestão</NavLink>
             </div>
           </nav>
         )}
