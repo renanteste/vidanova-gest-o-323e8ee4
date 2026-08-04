@@ -389,7 +389,7 @@ function RotaFormDialog({
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
           <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={busy}>
-            {busy ? "Salvando…" : initial ? "Salvar alterações" : "Criar rota"}
+            {busy ? "Salvando…" : initial ? "Salvar alterações" : "Criar obra"}
           </Button>
         </DialogFooter>
       </form>
