@@ -35,6 +35,8 @@ type Item = {
   created_at: string;
   rota?: {
     obra: string; material: string; construtora: string | null;
+    preco_por_m3: number; horario_previsto: string;
+
     origem_endereco: string; origem_complemento: string | null;
     destino_endereco: string; destino_complemento: string | null;
   };
