@@ -204,24 +204,35 @@ function RotaFormDialog({
     material: initial?.material ?? "",
     origem_endereco: initial?.origem_endereco ?? "",
     origem_complemento: initial?.origem_complemento ?? "",
-    destino_endereco: initial?.destino_endereco ?? "",
+    destino_endereco: initial?.destino_endereco ?? ATERRO_ENDERECO,
     destino_complemento: initial?.destino_complemento ?? "",
     preco_por_m3: initial?.preco_por_m3?.toString() ?? "",
-    horario_previsto: initial?.horario_previsto
-      ? new Date(initial.horario_previsto).toISOString().slice(0, 16)
-      : "",
   });
+  // Identifica se a obra existente já usa o aterro (sem alterar registros antigos)
+  const [destinoTipo, setDestinoTipo] = useState<"aterro" | "outro">(
+    !initial || (initial.destino_endereco ?? "") === ATERRO_ENDERECO ? "aterro" : "outro",
+  );
   const [origemCoords, setOrigemCoords] = useState<{ lat: number; lon: number } | null>(
     initial?.lat_origem != null && initial?.lng_origem != null
       ? { lat: Number(initial.lat_origem), lon: Number(initial.lng_origem) } : null,
   );
   const [destinoCoords, setDestinoCoords] = useState<{ lat: number; lon: number } | null>(
     initial?.lat_destino != null && initial?.lng_destino != null
-      ? { lat: Number(initial.lat_destino), lon: Number(initial.lng_destino) } : null,
+      ? { lat: Number(initial.lat_destino), lon: Number(initial.lng_destino) }
+      : initial ? null : ATERRO_COORDS,
   );
   const [distancia, setDistancia] = useState<number | null>(initial?.distancia_km ?? null);
   const [calculando, setCalculando] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  const handleDestinoTipo = (v: "aterro" | "outro") => {
+    setDestinoTipo(v);
+    if (v === "aterro") {
+      setForm((f) => ({ ...f, destino_endereco: ATERRO_ENDERECO }));
+      setDestinoCoords(ATERRO_COORDS);
+      setDistancia(null);
+    }
+  };
 
   // Recalcular distância automaticamente quando ambas coords forem conhecidas
   useEffect(() => {
@@ -247,10 +258,11 @@ function RotaFormDialog({
     setBusy(true);
 
     // garante coords (geocode fallback se o usuário digitou sem clicar na sugestão)
+    const destinoEndereco = parsed.data.destino_endereco ?? "";
     let oc = origemCoords;
     let dc = destinoCoords;
     if (!oc) oc = await geocode(parsed.data.origem_endereco);
-    if (!dc) dc = await geocode(parsed.data.destino_endereco);
+    if (!dc && destinoEndereco) dc = await geocode(destinoEndereco);
 
     let km = distancia;
     if (oc && dc && km == null) km = await routeDistanceKm(oc, dc);
@@ -262,14 +274,16 @@ function RotaFormDialog({
       material: parsed.data.material,
       origem_endereco: parsed.data.origem_endereco,
       origem_complemento: parsed.data.origem_complemento || null,
-      destino_endereco: parsed.data.destino_endereco,
+      destino_endereco: destinoEndereco,
       destino_complemento: parsed.data.destino_complemento || null,
       lat_origem: oc?.lat ?? null,
       lng_origem: oc?.lon ?? null,
       lat_destino: dc?.lat ?? null,
       lng_destino: dc?.lon ?? null,
       preco_por_m3: parsed.data.preco_por_m3,
-      horario_previsto: new Date(parsed.data.horario_previsto).toISOString(),
+      // Campo "Horário previsto" removido do formulário; a coluna é mantida no banco
+      // e preenchida com o valor já existente (edição) ou com a data atual (criação).
+      horario_previsto: initial?.horario_previsto ?? new Date().toISOString(),
       distancia_km: km,
     } as any;
 
@@ -279,8 +293,9 @@ function RotaFormDialog({
 
     setBusy(false);
     if (error) toast.error(error.message);
-    else { toast.success(initial ? "Rota atualizada" : "Rota criada"); onClose(); }
+    else { toast.success(initial ? "Obra atualizada" : "Obra criada"); onClose(); }
   };
+
 
   return (
     <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
