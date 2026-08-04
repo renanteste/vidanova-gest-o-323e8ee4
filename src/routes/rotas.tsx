@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { toast } from "sonner";
 import { Plus, MapPin, Calendar, Trash2, Route as RouteIcon, Loader2, Pencil, Building2, UserCog } from "lucide-react";
@@ -23,6 +24,14 @@ export const Route = createFileRoute("/rotas")({
     </RequireAuth>
   ),
 });
+
+// Opções fixas de material (gravadas na coluna existente `material`)
+const MATERIAIS = ["Solo", "Limpeza/Entulho"] as const;
+// Opções de "Tipo de escavação" — reutiliza a coluna existente `responsavel`
+const TIPOS_ESCAVACAO = ["Corte", "Hélice", "Limpeza/Entulho", "Blocos/Baldrames", "Outros"] as const;
+// Destino padrão: Aterro Vida Nova
+const ATERRO_ENDERECO = "Aterro Vida Nova - Avenida Chica Luiza, Jaraguá, São Paulo - SP, 05184-630";
+const ATERRO_COORDS = { lat: -23.43723, lon: -46.761031 };
 
 type Rota = {
   id: string;
@@ -52,11 +61,11 @@ const rotaSchema = z.object({
   material: z.string().trim().min(2, "Informe o material").max(120),
   origem_endereco: z.string().trim().min(5, "Endereço de origem inválido").max(300),
   origem_complemento: z.string().max(120).optional().or(z.literal("")),
-  destino_endereco: z.string().trim().min(5, "Endereço de destino inválido").max(300),
+  destino_endereco: z.string().trim().max(300).optional().or(z.literal("")),
   destino_complemento: z.string().max(120).optional().or(z.literal("")),
   preco_por_m3: z.number().positive("Preço deve ser maior que 0"),
-  horario_previsto: z.string().min(1, "Horário obrigatório"),
 });
+
 
 function RotasPage() {
   const { user, profile } = useAuth();
