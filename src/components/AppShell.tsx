@@ -5,6 +5,8 @@ import { ProfileMenu } from "@/components/ProfileMenu";
 import { recordLastPath } from "@/lib/last-path";
 import { Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox, Navigation, MessageSquarePlus, MessagesSquare } from "lucide-react";
 import type { ReactNode } from "react";
+import logoEscavadeira from "@/assets/escavadeira.png";
+
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
   const { profile } = useAuth();
@@ -25,11 +27,12 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
             to={profile ? dashboardPathFor(profile.perfil) : "/"}
             className="flex items-center gap-2 font-semibold tracking-tight min-w-0"
           >
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-accent text-accent-foreground shrink-0">
-              <Truck className="h-4 w-4" />
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-accent shrink-0 overflow-hidden">
+              <img src={logoEscavadeira} alt="Vida Nova Terraplenagem" width={32} height={32} className="h-7 w-7 object-contain" />
             </span>
-            <span className="text-base truncate">VidaNova <span className="text-accent">Terraplenagem</span></span>
+            <span className="text-base truncate">Vida Nova <span className="text-accent">Terraplenagem</span></span>
           </Link>
+
           {profile && <ProfileMenu />}
         </div>
         {profile && (
