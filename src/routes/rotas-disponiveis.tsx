@@ -28,7 +28,6 @@ type Rota = {
   origem_endereco: string;
   destino_endereco: string;
   preco_por_m3: number;
-  horario_previsto: string;
   distancia_km: number | null;
   status: string;
 };
@@ -137,7 +136,6 @@ function RotasDisponiveisPage() {
                 <CardContent className="pt-4 space-y-2 text-sm">
                   <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div className="line-clamp-1"><strong>De:</strong> {r.origem_endereco}</div></div>
                   <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div className="line-clamp-1"><strong>Para:</strong> {r.destino_endereco}</div></div>
-                  <div className="flex gap-2"><Calendar className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div>{new Date(r.horario_previsto).toLocaleString("pt-BR")}</div></div>
                   {r.distancia_km != null && (
                     <div className="text-muted-foreground">Distância estimada: <strong className="text-foreground">{Number(r.distancia_km).toLocaleString("pt-BR")} km</strong></div>
                   )}

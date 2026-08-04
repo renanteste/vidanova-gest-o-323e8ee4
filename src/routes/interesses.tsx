@@ -35,7 +35,6 @@ type Item = {
   created_at: string;
   rota?: {
     obra: string; material: string; construtora: string | null;
-    preco_por_m3: number; horario_previsto: string;
     origem_endereco: string; origem_complemento: string | null;
     destino_endereco: string; destino_complemento: string | null;
   };
@@ -154,7 +153,6 @@ function InteressesPage() {
                   <div className="text-sm space-y-1 border-t pt-3">
                     <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" /><div><strong>Origem:</strong> {it.rota?.origem_endereco}{it.rota?.origem_complemento && ` — ${it.rota.origem_complemento}`}</div></div>
                     <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" /><div><strong>Destino:</strong> {it.rota?.destino_endereco}{it.rota?.destino_complemento && ` — ${it.rota.destino_complemento}`}</div></div>
-                    <div className="flex gap-2"><Calendar className="h-4 w-4 text-accent shrink-0 mt-0.5" /><div>{it.rota?.horario_previsto ? new Date(it.rota.horario_previsto).toLocaleString("pt-BR") : "—"}</div></div>
                     <div className="flex gap-2"><Truck className="h-4 w-4 text-accent shrink-0 mt-0.5" /><div><strong>Veículo:</strong> {it.veiculo?.placa} — {it.veiculo?.modelo} · {cap.toLocaleString("pt-BR")} m³</div></div>
                     {valorTotal != null && (
                       <div className="text-sm pt-1"><strong>Frete total:</strong> <span className="text-accent font-semibold">{formatBRL(valorTotal)}</span></div>
