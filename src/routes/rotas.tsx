@@ -156,11 +156,12 @@ function RotasPage() {
                 </div>
                 <div className="text-sm space-y-1">
                   {r.responsavel && (
-                    <div className="flex gap-2"><UserCog className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Responsável:</strong> {r.responsavel}</div></div>
+                    <div className="flex gap-2"><UserCog className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Tipo de escavação:</strong> {r.responsavel}</div></div>
                   )}
                   <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Origem:</strong> {r.origem_endereco}{r.origem_complemento && ` — ${r.origem_complemento}`}</div></div>
-                  <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Destino:</strong> {r.destino_endereco}{r.destino_complemento && ` — ${r.destino_complemento}`}</div></div>
-                  <div className="flex gap-2"><Calendar className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div>{new Date(r.horario_previsto).toLocaleString("pt-BR")}</div></div>
+                  <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Destino:</strong> {r.destino_endereco || "—"}{r.destino_complemento && ` — ${r.destino_complemento}`}</div></div>
+                  {/* Horário previsto removido da exibição (coluna mantida no banco). */}
+
                 </div>
                 <div className="flex flex-wrap gap-3 text-sm border-t pt-3">
                   <div><span className="text-muted-foreground">Preço:</span> <strong>{formatBRL(Number(r.preco_por_m3))}/m³</strong></div>
