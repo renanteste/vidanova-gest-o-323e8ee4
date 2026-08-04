@@ -299,7 +299,7 @@ function RotaFormDialog({
 
   return (
     <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-      <DialogHeader><DialogTitle>{initial ? "Editar rota" : "Nova rota"}</DialogTitle></DialogHeader>
+      <DialogHeader><DialogTitle>{initial ? "Editar obra" : "Nova obra"}</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
@@ -314,11 +314,22 @@ function RotaFormDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label>Material *</Label>
-            <Input value={form.material} onChange={(e) => setForm({ ...form, material: e.target.value })} placeholder="Ex: SOLO TIPO 2B" required />
+            <Select value={form.material} onValueChange={(v) => setForm((f) => ({ ...f, material: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                {MATERIAIS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1">
-            <Label>Responsável da obra</Label>
-            <Input value={form.responsavel} onChange={(e) => setForm({ ...form, responsavel: e.target.value })} placeholder="Opcional" />
+            {/* Reutiliza a coluna existente `responsavel` */}
+            <Label>Tipo de escavação</Label>
+            <Select value={form.responsavel} onValueChange={(v) => setForm((f) => ({ ...f, responsavel: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                {TIPOS_ESCAVACAO.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="space-y-1">
@@ -335,15 +346,25 @@ function RotaFormDialog({
             onChange={(e) => setForm({ ...form, origem_complemento: e.target.value })} />
         </div>
         <div className="space-y-1">
-          <Label>Endereço de destino *</Label>
-          <AddressAutocomplete
-            value={form.destino_endereco}
-            onChange={(v, coords) => {
-              setForm((f) => ({ ...f, destino_endereco: v }));
-              if (coords) setDestinoCoords(coords); else setDestinoCoords(null);
-            }}
-            required
-          />
+          <Label>Destino</Label>
+          <Select value={destinoTipo} onValueChange={(v) => handleDestinoTipo(v as "aterro" | "outro")}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="aterro">Aterro Vida Nova</SelectItem>
+              <SelectItem value="outro">Outro destino</SelectItem>
+            </SelectContent>
+          </Select>
+          {destinoTipo === "aterro" ? (
+            <p className="text-xs text-muted-foreground mt-1">{ATERRO_ENDERECO}</p>
+          ) : (
+            <AddressAutocomplete
+              value={form.destino_endereco}
+              onChange={(v, coords) => {
+                setForm((f) => ({ ...f, destino_endereco: v }));
+                if (coords) setDestinoCoords(coords); else setDestinoCoords(null);
+              }}
+            />
+          )}
           <Input className="mt-1" placeholder="Complemento (opcional)" value={form.destino_complemento}
             onChange={(e) => setForm({ ...form, destino_complemento: e.target.value })} />
         </div>
@@ -353,12 +374,8 @@ function RotaFormDialog({
             <Input type="number" step="0.01" min="0.01" value={form.preco_por_m3}
               onChange={(e) => setForm({ ...form, preco_por_m3: e.target.value })} required />
           </div>
-          <div className="space-y-1">
-            <Label>Horário previsto *</Label>
-            <Input type="datetime-local" value={form.horario_previsto}
-              onChange={(e) => setForm({ ...form, horario_previsto: e.target.value })} required />
-          </div>
         </div>
+
         <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm flex flex-wrap gap-x-4 gap-y-1">
           <div className="flex items-center gap-1">
             <strong>Distância:</strong>
