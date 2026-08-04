@@ -186,14 +186,6 @@ function InteressesFrotaPage() {
                           </div>
                         </div>
 
-                        <div className="flex gap-2">
-                          <Calendar className="h-4 w-4 text-accent shrink-0" />
-                          <div>
-                            {r
-                              ? new Date(r.horario_previsto).toLocaleString("pt-BR")
-                              : "Data não disponível"}
-                          </div>
-                        </div>
 
                         <div className="border-t pt-3 space-y-2">
                           <div className="flex items-center gap-2">
@@ -340,14 +332,6 @@ function InteressesFrotaPage() {
                           </div>
                         </div>
 
-                        <div className="flex gap-2">
-                          <Calendar className="h-4 w-4 text-accent shrink-0" />
-                          <div>
-                            {r
-                              ? new Date(r.horario_previsto).toLocaleString("pt-BR")
-                              : "—"}
-                          </div>
-                        </div>
 
                         <div className="pt-2">
                           <ConfirmCancelarSolicitacao
@@ -390,7 +374,6 @@ function InteressesFrotaPage() {
                       {r.construtora && <div className="flex gap-2"><Building2 className="h-4 w-4 text-accent shrink-0" />{r.construtora}</div>}
                       <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" /><div className="line-clamp-1"><strong>De:</strong> {r.origem_endereco}</div></div>
                       <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent shrink-0 mt-0.5" /><div className="line-clamp-1"><strong>Para:</strong> {r.destino_endereco}</div></div>
-                      <div className="flex gap-2"><Calendar className="h-4 w-4 text-accent shrink-0" /><div>{new Date(r.horario_previsto).toLocaleString("pt-BR")}</div></div>
                       <div className="pt-2">
                         <Button size="sm" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => solicitar(r.id)}>
                           <HandHeart className="h-4 w-4 mr-1" /> Solicitar rota
@@ -450,14 +433,6 @@ function InteressesFrotaPage() {
                           </div>
                         </div>
 
-                        <div className="flex gap-2">
-                          <Calendar className="h-4 w-4 text-accent shrink-0" />
-                          <div>
-                            {r
-                              ? new Date(r.horario_previsto).toLocaleString("pt-BR")
-                              : "—"}
-                          </div>
-                        </div>
 
                         <div className="border-t pt-3 mt-3">
                           <div className="text-xs text-muted-foreground">
