@@ -168,14 +168,6 @@ function MeusInteressesPage() {
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
-                      <Calendar className="h-4 w-4 text-orange-500 mt-1 shrink-0" />
-                      <div>
-                        {it.rota?.horario_previsto
-                          ? new Date(it.rota.horario_previsto).toLocaleString("pt-BR")
-                          : "-"}
-                      </div>
-                    </div>
                   </div>
 
                   {it.rota?.distancia_km && (

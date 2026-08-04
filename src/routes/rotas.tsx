@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { toast } from "sonner";
 import { Plus, MapPin, Calendar, Trash2, Route as RouteIcon, Loader2, Pencil, Building2, UserCog } from "lucide-react";
@@ -23,6 +24,14 @@ export const Route = createFileRoute("/rotas")({
     </RequireAuth>
   ),
 });
+
+// Opções fixas de material (gravadas na coluna existente `material`)
+const MATERIAIS = ["Solo", "Limpeza/Entulho"] as const;
+// Opções de "Tipo de escavação" — reutiliza a coluna existente `responsavel`
+const TIPOS_ESCAVACAO = ["Corte", "Hélice", "Limpeza/Entulho", "Blocos/Baldrames", "Outros"] as const;
+// Destino padrão: Aterro Vida Nova
+const ATERRO_ENDERECO = "Aterro Vida Nova - Avenida Chica Luiza, Jaraguá, São Paulo - SP, 05184-630";
+const ATERRO_COORDS = { lat: -23.43723, lon: -46.761031 };
 
 type Rota = {
   id: string;
@@ -52,11 +61,11 @@ const rotaSchema = z.object({
   material: z.string().trim().min(2, "Informe o material").max(120),
   origem_endereco: z.string().trim().min(5, "Endereço de origem inválido").max(300),
   origem_complemento: z.string().max(120).optional().or(z.literal("")),
-  destino_endereco: z.string().trim().min(5, "Endereço de destino inválido").max(300),
+  destino_endereco: z.string().trim().max(300).optional().or(z.literal("")),
   destino_complemento: z.string().max(120).optional().or(z.literal("")),
   preco_por_m3: z.number().positive("Preço deve ser maior que 0"),
-  horario_previsto: z.string().min(1, "Horário obrigatório"),
 });
+
 
 function RotasPage() {
   const { user, profile } = useAuth();
@@ -88,20 +97,20 @@ function RotasPage() {
   };
 
   const handleDelete = async (r: Rota) => {
-    if (!confirm(`Excluir rota da obra "${r.obra}"?`)) return;
+    if (!confirm(`Excluir a obra "${r.obra}"?`)) return;
     const { error } = await supabase.from("rotas").delete().eq("id", r.id);
     if (error) toast.error(error.message);
-    else { toast.success("Rota excluída"); load(); }
+    else { toast.success("Obra excluída"); load(); }
   };
 
   return (
-    <AppShell title={isAdmin ? "Rotas" : "Rotas (visualização)"}>
+    <AppShell title={isAdmin ? "Obras" : "Obras (visualização)"}>
       {isAdmin && (
         <div className="mb-4 flex justify-end">
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
-                <Plus className="h-4 w-4 mr-1" /> Nova rota
+                <Plus className="h-4 w-4 mr-1" /> Nova obra
               </Button>
             </DialogTrigger>
             <RotaFormDialog userId={user!.id} onClose={() => { setOpen(false); load(); }} />
@@ -124,7 +133,7 @@ function RotasPage() {
       ) : list.length === 0 ? (
         <Card><CardContent className="pt-6 text-center text-muted-foreground">
           <RouteIcon className="h-10 w-10 mx-auto mb-2 opacity-50" />
-          Nenhuma rota cadastrada.
+          Nenhuma obra cadastrada.
         </CardContent></Card>
       ) : (
         <div className="grid sm:grid-cols-2 gap-4">
@@ -147,11 +156,12 @@ function RotasPage() {
                 </div>
                 <div className="text-sm space-y-1">
                   {r.responsavel && (
-                    <div className="flex gap-2"><UserCog className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Responsável:</strong> {r.responsavel}</div></div>
+                    <div className="flex gap-2"><UserCog className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Tipo de escavação:</strong> {r.responsavel}</div></div>
                   )}
                   <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Origem:</strong> {r.origem_endereco}{r.origem_complemento && ` — ${r.origem_complemento}`}</div></div>
-                  <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Destino:</strong> {r.destino_endereco}{r.destino_complemento && ` — ${r.destino_complemento}`}</div></div>
-                  <div className="flex gap-2"><Calendar className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div>{new Date(r.horario_previsto).toLocaleString("pt-BR")}</div></div>
+                  <div className="flex gap-2"><MapPin className="h-4 w-4 text-accent mt-0.5 shrink-0" /><div><strong>Destino:</strong> {r.destino_endereco || "—"}{r.destino_complemento && ` — ${r.destino_complemento}`}</div></div>
+                  {/* Horário previsto removido da exibição (coluna mantida no banco). */}
+
                 </div>
                 <div className="flex flex-wrap gap-3 text-sm border-t pt-3">
                   <div><span className="text-muted-foreground">Preço:</span> <strong>{formatBRL(Number(r.preco_por_m3))}/m³</strong></div>
@@ -195,24 +205,35 @@ function RotaFormDialog({
     material: initial?.material ?? "",
     origem_endereco: initial?.origem_endereco ?? "",
     origem_complemento: initial?.origem_complemento ?? "",
-    destino_endereco: initial?.destino_endereco ?? "",
+    destino_endereco: initial?.destino_endereco ?? ATERRO_ENDERECO,
     destino_complemento: initial?.destino_complemento ?? "",
     preco_por_m3: initial?.preco_por_m3?.toString() ?? "",
-    horario_previsto: initial?.horario_previsto
-      ? new Date(initial.horario_previsto).toISOString().slice(0, 16)
-      : "",
   });
+  // Identifica se a obra existente já usa o aterro (sem alterar registros antigos)
+  const [destinoTipo, setDestinoTipo] = useState<"aterro" | "outro">(
+    !initial || (initial.destino_endereco ?? "") === ATERRO_ENDERECO ? "aterro" : "outro",
+  );
   const [origemCoords, setOrigemCoords] = useState<{ lat: number; lon: number } | null>(
     initial?.lat_origem != null && initial?.lng_origem != null
       ? { lat: Number(initial.lat_origem), lon: Number(initial.lng_origem) } : null,
   );
   const [destinoCoords, setDestinoCoords] = useState<{ lat: number; lon: number } | null>(
     initial?.lat_destino != null && initial?.lng_destino != null
-      ? { lat: Number(initial.lat_destino), lon: Number(initial.lng_destino) } : null,
+      ? { lat: Number(initial.lat_destino), lon: Number(initial.lng_destino) }
+      : initial ? null : ATERRO_COORDS,
   );
   const [distancia, setDistancia] = useState<number | null>(initial?.distancia_km ?? null);
   const [calculando, setCalculando] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  const handleDestinoTipo = (v: "aterro" | "outro") => {
+    setDestinoTipo(v);
+    if (v === "aterro") {
+      setForm((f) => ({ ...f, destino_endereco: ATERRO_ENDERECO }));
+      setDestinoCoords(ATERRO_COORDS);
+      setDistancia(null);
+    }
+  };
 
   // Recalcular distância automaticamente quando ambas coords forem conhecidas
   useEffect(() => {
@@ -238,10 +259,11 @@ function RotaFormDialog({
     setBusy(true);
 
     // garante coords (geocode fallback se o usuário digitou sem clicar na sugestão)
+    const destinoEndereco = parsed.data.destino_endereco ?? "";
     let oc = origemCoords;
     let dc = destinoCoords;
     if (!oc) oc = await geocode(parsed.data.origem_endereco);
-    if (!dc) dc = await geocode(parsed.data.destino_endereco);
+    if (!dc && destinoEndereco) dc = await geocode(destinoEndereco);
 
     let km = distancia;
     if (oc && dc && km == null) km = await routeDistanceKm(oc, dc);
@@ -253,14 +275,16 @@ function RotaFormDialog({
       material: parsed.data.material,
       origem_endereco: parsed.data.origem_endereco,
       origem_complemento: parsed.data.origem_complemento || null,
-      destino_endereco: parsed.data.destino_endereco,
+      destino_endereco: destinoEndereco,
       destino_complemento: parsed.data.destino_complemento || null,
       lat_origem: oc?.lat ?? null,
       lng_origem: oc?.lon ?? null,
       lat_destino: dc?.lat ?? null,
       lng_destino: dc?.lon ?? null,
       preco_por_m3: parsed.data.preco_por_m3,
-      horario_previsto: new Date(parsed.data.horario_previsto).toISOString(),
+      // Campo "Horário previsto" removido do formulário; a coluna é mantida no banco
+      // e preenchida com o valor já existente (edição) ou com a data atual (criação).
+      horario_previsto: initial?.horario_previsto ?? new Date().toISOString(),
       distancia_km: km,
     } as any;
 
@@ -270,12 +294,13 @@ function RotaFormDialog({
 
     setBusy(false);
     if (error) toast.error(error.message);
-    else { toast.success(initial ? "Rota atualizada" : "Rota criada"); onClose(); }
+    else { toast.success(initial ? "Obra atualizada" : "Obra criada"); onClose(); }
   };
+
 
   return (
     <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-      <DialogHeader><DialogTitle>{initial ? "Editar rota" : "Nova rota"}</DialogTitle></DialogHeader>
+      <DialogHeader><DialogTitle>{initial ? "Editar obra" : "Nova obra"}</DialogTitle></DialogHeader>
       <form onSubmit={submit} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
@@ -290,11 +315,22 @@ function RotaFormDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label>Material *</Label>
-            <Input value={form.material} onChange={(e) => setForm({ ...form, material: e.target.value })} placeholder="Ex: SOLO TIPO 2B" required />
+            <Select value={form.material} onValueChange={(v) => setForm((f) => ({ ...f, material: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                {MATERIAIS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1">
-            <Label>Responsável da obra</Label>
-            <Input value={form.responsavel} onChange={(e) => setForm({ ...form, responsavel: e.target.value })} placeholder="Opcional" />
+            {/* Reutiliza a coluna existente `responsavel` */}
+            <Label>Tipo de escavação</Label>
+            <Select value={form.responsavel} onValueChange={(v) => setForm((f) => ({ ...f, responsavel: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                {TIPOS_ESCAVACAO.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="space-y-1">
@@ -311,15 +347,25 @@ function RotaFormDialog({
             onChange={(e) => setForm({ ...form, origem_complemento: e.target.value })} />
         </div>
         <div className="space-y-1">
-          <Label>Endereço de destino *</Label>
-          <AddressAutocomplete
-            value={form.destino_endereco}
-            onChange={(v, coords) => {
-              setForm((f) => ({ ...f, destino_endereco: v }));
-              if (coords) setDestinoCoords(coords); else setDestinoCoords(null);
-            }}
-            required
-          />
+          <Label>Destino</Label>
+          <Select value={destinoTipo} onValueChange={(v) => handleDestinoTipo(v as "aterro" | "outro")}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="aterro">Aterro Vida Nova</SelectItem>
+              <SelectItem value="outro">Outro destino</SelectItem>
+            </SelectContent>
+          </Select>
+          {destinoTipo === "aterro" ? (
+            <p className="text-xs text-muted-foreground mt-1">{ATERRO_ENDERECO}</p>
+          ) : (
+            <AddressAutocomplete
+              value={form.destino_endereco}
+              onChange={(v, coords) => {
+                setForm((f) => ({ ...f, destino_endereco: v }));
+                if (coords) setDestinoCoords(coords); else setDestinoCoords(null);
+              }}
+            />
+          )}
           <Input className="mt-1" placeholder="Complemento (opcional)" value={form.destino_complemento}
             onChange={(e) => setForm({ ...form, destino_complemento: e.target.value })} />
         </div>
@@ -329,12 +375,8 @@ function RotaFormDialog({
             <Input type="number" step="0.01" min="0.01" value={form.preco_por_m3}
               onChange={(e) => setForm({ ...form, preco_por_m3: e.target.value })} required />
           </div>
-          <div className="space-y-1">
-            <Label>Horário previsto *</Label>
-            <Input type="datetime-local" value={form.horario_previsto}
-              onChange={(e) => setForm({ ...form, horario_previsto: e.target.value })} required />
-          </div>
         </div>
+
         <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm flex flex-wrap gap-x-4 gap-y-1">
           <div className="flex items-center gap-1">
             <strong>Distância:</strong>
@@ -348,7 +390,7 @@ function RotaFormDialog({
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
           <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={busy}>
-            {busy ? "Salvando…" : initial ? "Salvar alterações" : "Criar rota"}
+            {busy ? "Salvando…" : initial ? "Salvar alterações" : "Criar obra"}
           </Button>
         </DialogFooter>
       </form>
