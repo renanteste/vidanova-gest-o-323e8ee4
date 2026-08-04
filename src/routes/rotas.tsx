@@ -97,20 +97,20 @@ function RotasPage() {
   };
 
   const handleDelete = async (r: Rota) => {
-    if (!confirm(`Excluir rota da obra "${r.obra}"?`)) return;
+    if (!confirm(`Excluir a obra "${r.obra}"?`)) return;
     const { error } = await supabase.from("rotas").delete().eq("id", r.id);
     if (error) toast.error(error.message);
-    else { toast.success("Rota excluída"); load(); }
+    else { toast.success("Obra excluída"); load(); }
   };
 
   return (
-    <AppShell title={isAdmin ? "Rotas" : "Rotas (visualização)"}>
+    <AppShell title={isAdmin ? "Obras" : "Obras (visualização)"}>
       {isAdmin && (
         <div className="mb-4 flex justify-end">
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
-                <Plus className="h-4 w-4 mr-1" /> Nova rota
+                <Plus className="h-4 w-4 mr-1" /> Nova obra
               </Button>
             </DialogTrigger>
             <RotaFormDialog userId={user!.id} onClose={() => { setOpen(false); load(); }} />
@@ -133,7 +133,7 @@ function RotasPage() {
       ) : list.length === 0 ? (
         <Card><CardContent className="pt-6 text-center text-muted-foreground">
           <RouteIcon className="h-10 w-10 mx-auto mb-2 opacity-50" />
-          Nenhuma rota cadastrada.
+          Nenhuma obra cadastrada.
         </CardContent></Card>
       ) : (
         <div className="grid sm:grid-cols-2 gap-4">
