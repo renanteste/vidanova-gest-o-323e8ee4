@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
+import { RouteMap } from "@/components/RouteMap";
+
 import { toast } from "sonner";
 import { Plus, MapPin, Calendar, Trash2, Route as RouteIcon, Loader2, Pencil, Building2, UserCog } from "lucide-react";
 import { routeDistanceKm, formatBRL, geocode } from "@/lib/geo";
@@ -377,6 +379,17 @@ function RotaFormDialog({
           </div>
         </div>
 
+        {/* Mapa apenas de visualização — não altera dados nem bloqueia o salvamento */}
+        <div className="space-y-1">
+          <Label>Trajeto (visualização)</Label>
+          <RouteMap
+            origemEndereco={form.origem_endereco}
+            destinoEndereco={form.destino_endereco}
+            origemCoords={origemCoords}
+            destinoCoords={destinoCoords}
+          />
+        </div>
+
         <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm flex flex-wrap gap-x-4 gap-y-1">
           <div className="flex items-center gap-1">
             <strong>Distância:</strong>
@@ -387,6 +400,7 @@ function RotaFormDialog({
             <strong>R$/km/m³:</strong> {valorKmM3 != null ? valorKmM3.toFixed(2) : "—"}
           </div>
         </div>
+
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
           <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={busy}>

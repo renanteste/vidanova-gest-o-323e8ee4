@@ -28,6 +28,21 @@ export async function routeDistanceKm(origin: LatLng, dest: LatLng): Promise<num
   }
 }
 
+/** Geometria da rota (lista de [lat, lon]) para desenhar no mapa. Retorna null em falha. */
+export async function routeGeometry(origin: LatLng, dest: LatLng): Promise<[number, number][] | null> {
+  const url = `https://router.project-osrm.org/route/v1/driving/${origin.lon},${origin.lat};${dest.lon},${dest.lat}?overview=full&geometries=geojson`;
+  try {
+    const r = await fetch(url);
+    const data = await r.json();
+    const coords = data?.routes?.[0]?.geometry?.coordinates;
+    if (!Array.isArray(coords)) return null;
+    return coords.map((c: [number, number]) => [c[1], c[0]] as [number, number]);
+  } catch {
+    return null;
+  }
+}
+
+
 export async function calcularDistanciaKm(origemEndereco: string, destinoEndereco: string): Promise<number | null> {
   const [a, b] = await Promise.all([geocode(origemEndereco), geocode(destinoEndereco)]);
   if (!a || !b) return null;
