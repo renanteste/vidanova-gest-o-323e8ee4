@@ -107,7 +107,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               )}
               {perfil === "frota" && (
                 <NavLink to="/interesses-frota" icon={<Inbox className="h-4 w-4" />}>
-                  Rotas
+                  Obras
                 </NavLink>
               )}
               {/* Feedbacks e Enviar sugestão ocultados temporariamente.
