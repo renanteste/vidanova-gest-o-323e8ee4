@@ -311,7 +311,7 @@ function VeiculoFormDialog({ onClose, userId, initial }: { onClose: () => void; 
   return (
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle>{initial ? "Editar veículo" : "Novo veículo"}</DialogTitle>
+        <DialogTitle>{initial ? "Editar veículo" : "Adicionar veículo"}</DialogTitle>
       </DialogHeader>
       <form onSubmit={submit} className="space-y-3">
         <div className="space-y-1">
@@ -337,7 +337,7 @@ function VeiculoFormDialog({ onClose, userId, initial }: { onClose: () => void; 
           <div className="space-y-1">
             <Label>Capacidade (m³)</Label>
             <Input
-              type="number"
+              type="double"
               step="0.1"
               min="0.1"
               value={form.capacidade_m3}
