@@ -3,10 +3,19 @@ import { useEffect } from "react";
 import { useAuth, dashboardPathFor } from "@/lib/auth";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { recordLastPath } from "@/lib/last-path";
-import { Truck, LayoutDashboard, User as UserIcon, Route as RouteIcon, ClipboardList, Inbox, Navigation, MessageSquarePlus, MessagesSquare } from "lucide-react";
+import {
+  Truck,
+  LayoutDashboard,
+  User as UserIcon,
+  Route as RouteIcon,
+  ClipboardList,
+  Inbox,
+  Navigation,
+  MessageSquarePlus,
+  MessagesSquare,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import logoEscavadeira from "@/assets/escavadeira.png";
-
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
   const { profile } = useAuth();
@@ -28,9 +37,17 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
             className="flex items-center gap-2 font-semibold tracking-tight min-w-0"
           >
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-accent shrink-0 overflow-hidden">
-              <img src={logoEscavadeira} alt="Vida Nova Terraplenagem" width={32} height={32} className="h-7 w-7 object-contain" />
+              <img
+                src={logoEscavadeira}
+                alt="Vida Nova Terraplenagem"
+                width={32}
+                height={32}
+                className="h-7 w-7 object-contain"
+              />
             </span>
-            <span className="text-base truncate">Vida Nova <span className="text-accent">Terraplenagem</span></span>
+            <span className="text-base truncate">
+              Vida Nova <span className="text-accent">Terraplenagem</span>
+            </span>
           </Link>
 
           {profile && <ProfileMenu />}
@@ -38,42 +55,60 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         {profile && (
           <nav className="bg-sidebar-accent border-t border-sidebar-border">
             <div className="mx-auto max-w-6xl px-4 flex gap-1 text-sm overflow-x-auto">
-              <NavLink to={dashboardPathFor(profile.perfil)} icon={<LayoutDashboard className="h-4 w-4" />}>Painel</NavLink>
+              <NavLink to={dashboardPathFor(profile.perfil)} icon={<LayoutDashboard className="h-4 w-4" />}>
+                Painel
+              </NavLink>
 
               {/* {perfil === "admin" && (
                 <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Todos veículos</NavLink>
               )} */}
               {perfil === "frota" && (
-                <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Veículos</NavLink>
+                <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>
+                  Veículos
+                </NavLink>
               )}
               {perfil === "motorista_autonomo" && (
-                <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Meu veículo</NavLink>
+                <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>
+                  Meu veículo
+                </NavLink>
               )}
               {/* {perfil === "motorista_vinculado" && (
                 <NavLink to="/veiculos" icon={<Truck className="h-4 w-4" />}>Veículos da frota</NavLink>
               )} */}
 
               {perfil === "frota" && (
-                <NavLink to="/motoristas" icon={<UserIcon className="h-4 w-4" />}>Motoristas</NavLink>
+                <NavLink to="/motoristas" icon={<UserIcon className="h-4 w-4" />}>
+                  Motoristas
+                </NavLink>
               )}
 
-              {(perfil === "admin") && (
-                <NavLink to="/rotas" icon={<RouteIcon className="h-4 w-4" />}>Obras</NavLink>
+              {perfil === "admin" && (
+                <NavLink to="/rotas" icon={<RouteIcon className="h-4 w-4" />}>
+                  Obras
+                </NavLink>
               )}
-                {perfil === "motorista_autonomo" && (
-                  <NavLink to="/rotas-disponiveis" icon={<RouteIcon className="h-4 w-4" />}>Rotas</NavLink>
-                )}
+              {perfil === "motorista_autonomo" && (
+                <NavLink to="/rotas-disponiveis" icon={<RouteIcon className="h-4 w-4" />}>
+                  Obras
+                </NavLink>
+              )}
               {/* {isMotorista && (
                 <NavLink to="/meus-interesses" icon={<ClipboardList className="h-4 w-4" />}>Meus interesses</NavLink>
               )} */}
               {isMotorista && (
-                <NavLink to="/viagens" icon={<Navigation className="h-4 w-4" />}>Viagens</NavLink>
+                <NavLink to="/viagens" icon={<Navigation className="h-4 w-4" />}>
+                  Viagens
+                </NavLink>
               )}
               {perfil === "admin" && (
-                <NavLink to="/interesses" icon={<Inbox className="h-4 w-4" />}>Interesses</NavLink>
+                <NavLink to="/interesses" icon={<Inbox className="h-4 w-4" />}>
+                  Interesses
+                </NavLink>
               )}
               {perfil === "frota" && (
-                <NavLink to="/interesses-frota" icon={<Inbox className="h-4 w-4" />}>Rotas</NavLink>
+                <NavLink to="/interesses-frota" icon={<Inbox className="h-4 w-4" />}>
+                  Rotas
+                </NavLink>
               )}
               {/* Feedbacks e Enviar sugestão ocultados temporariamente.
                   Manter a funcionalidade (rotas /feedbacks e /enviar-sugestao, tabela,
@@ -83,7 +118,6 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               )}
               <NavLink to="/enviar-sugestao" icon={<MessageSquarePlus className="h-4 w-4" />}>Enviar sugestão</NavLink>
               */}
-
             </div>
           </nav>
         )}
