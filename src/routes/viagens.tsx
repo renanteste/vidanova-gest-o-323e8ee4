@@ -56,6 +56,7 @@ function getPosition(): Promise<GeolocationPosition> {
 
 function ViagensPage() {
   const { user } = useAuth();
+  const fetchRotas = useServerFn(getRotasDoMotorista);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
