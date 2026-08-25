@@ -293,10 +293,19 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
         <Timeline status={status} temFoto={!!foto} />
 
         <div className="grid sm:grid-cols-2 gap-2">
-          <div><strong>Origem:</strong> {item.rota?.origem_endereco ?? "-"}</div>
-          <div><strong>Destino:</strong> {item.rota?.destino_endereco ?? "-"}</div>
-          <div><strong>Veículo:</strong> {item.veiculo?.placa ?? "-"} — {item.veiculo?.modelo ?? "-"} ({Number(item.veiculo?.capacidade_m3).toLocaleString("pt-BR")} m³)</div>
+          <div><strong>Obra:</strong> {item.rota?.obra || "-"}</div>
+          <div><strong>Material:</strong> {item.rota?.material || "-"}</div>
+          <div><strong>Tipo de escavação:</strong> {item.rota?.responsavel || "-"}</div>
+          {item.rota?.construtora && <div><strong>Construtora:</strong> {item.rota.construtora}</div>}
+          <div className="sm:col-span-2"><strong>Origem:</strong> {origem}</div>
+          <div className="sm:col-span-2"><strong>Destino:</strong> {destino}</div>
+          {item.rota?.distancia_km != null && (
+            <div><strong>Distância:</strong> {Number(item.rota.distancia_km).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km</div>
+          )}
+          <div><strong>Preço por m³:</strong> {precoM3 ? formatBRL(precoM3) : "-"}</div>
+          <div><strong>Veículo:</strong> {item.veiculo?.placa ?? "-"} — {item.veiculo?.modelo ?? "-"} ({Number(item.veiculo?.capacidade_m3 ?? 0).toLocaleString("pt-BR")} m³)</div>
           <div><strong>Frete:</strong> <span className="text-accent font-semibold">{formatBRL(valor)}</span></div>
+          <div><strong>Status:</strong> {STAGE_LABEL[status]}</div>
         </div>
 
         {v && (
