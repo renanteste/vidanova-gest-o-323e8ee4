@@ -149,11 +149,13 @@ function AdminDashboard() {
     doc.setFontSize(9);
     doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, 40, 46);
 
-    // preload images
+    // preload images (com as informações da viagem sobrepostas)
     const imgs: Record<string, string> = {};
     await Promise.all(filtradas.map(async (v) => {
       if (!v.foto_inicio_url) return;
       try {
+        const stamped = await stampPhoto(v.foto_inicio_url, stampFieldsFor(v));
+        if (stamped) { imgs[v.id] = stamped; return; }
         const res = await fetch(v.foto_inicio_url);
         const blob = await res.blob();
         const dataUrl: string = await new Promise((resolve) => {
