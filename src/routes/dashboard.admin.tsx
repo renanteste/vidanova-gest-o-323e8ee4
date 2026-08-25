@@ -273,7 +273,7 @@ function AdminDashboard() {
                         <TableRow key={v.id}>
                           <TableCell>
                             {v.foto_inicio_url && (
-                              <button onClick={() => setFotoOpen(v.foto_inicio_url)}>
+                              <button onClick={() => abrirFoto(v)}>
                                 <img src={v.foto_inicio_url} alt="início" className="h-12 w-12 object-cover rounded" />
                               </button>
                             )}
