@@ -69,7 +69,7 @@ function VinculadoDashboard() {
               emAndamento.map((v) => (
                 <div key={v.id} className="flex justify-between items-center border-b pb-2 last:border-0">
                   <span>{v.rotas?.obra ?? "—"}</span>
-                  <Badge variant="secondary">{v.status}</Badge>
+                  <Badge variant="secondary">Em andamento</Badge>
                 </div>
               ))}
             <Button asChild size="sm" className="mt-2"><Link to="/viagens">Ver viagens</Link></Button>
