@@ -71,15 +71,34 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const router = useRouter();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error) {
+      setBusy(false);
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Bem-vindo!");
+    // Redireciona explicitamente: não depende do carregamento assíncrono do
+    // contexto de auth (que pode atrasar/falhar e deixar a tela presa no login).
+    let destino = "/";
+    const uid = data.user?.id;
+    if (uid) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("perfil")
+        .eq("user_id", uid)
+        .maybeSingle();
+      if (prof?.perfil) destino = dashboardPathFor(prof.perfil as Perfil);
+    }
     setBusy(false);
-    if (error) toast.error(error.message);
-    else toast.success("Bem-vindo!");
+    router.navigate({ to: destino });
   };
+
 
   return (
     <form onSubmit={submit} className="space-y-4 mt-4">
