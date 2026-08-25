@@ -75,6 +75,22 @@ function AdminDashboard() {
     return { label: "Aguardando ⚪", className: "bg-gray-400 text-white" };
   };
 
+  // Campos sobrepostos na foto (apenas visualização/exportação; Storage intacto)
+  const stampFieldsFor = (v: Viagem): StampField[] => {
+    const r = rotas[v.rota_id] ?? {}; const ve = veiculos[v.veiculo_id] ?? {}; const m = profileMap[v.motorista_id] ?? {};
+    return [
+      { label: "Data", value: v.inicio_em ? new Date(v.inicio_em).toLocaleString("pt-BR") : null },
+      { label: "Motorista", value: m.nome },
+      { label: "Veículo", value: [ve.placa, ve.modelo].filter(Boolean).join(" - ") },
+      { label: "Origem", value: r.origem_endereco },
+      { label: "Destino", value: r.destino_endereco },
+      { label: "Obra", value: r.obra },
+      { label: "Material", value: r.material },
+      { label: "Tipo de escavação", value: r.responsavel },
+      { label: "Status", value: getStatus(v).label.replace(/[^\p{L}\s]/gu, "").trim() },
+    ];
+  };
+
   const filtradas = useMemo(() => viagens.filter((v) => {
     const r = rotas[v.rota_id];
     if (dataIni && new Date(v.inicio_em) < new Date(dataIni)) return false;
