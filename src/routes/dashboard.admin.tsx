@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { formatBRL } from "@/lib/geo";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { stampPhoto, type StampField } from "@/lib/photo-stamp";
 
 export const Route = createFileRoute("/dashboard/admin")({
   component: () => (
@@ -75,6 +76,28 @@ function AdminDashboard() {
     return { label: "Aguardando ⚪", className: "bg-gray-400 text-white" };
   };
 
+  // Campos sobrepostos na foto (apenas visualização/exportação; Storage intacto)
+  const stampFieldsFor = (v: Viagem): StampField[] => {
+    const r = rotas[v.rota_id] ?? {}; const ve = veiculos[v.veiculo_id] ?? {}; const m = profileMap[v.motorista_id] ?? {};
+    return [
+      { label: "Data", value: v.inicio_em ? new Date(v.inicio_em).toLocaleString("pt-BR") : null },
+      { label: "Motorista", value: m.nome },
+      { label: "Veículo", value: [ve.placa, ve.modelo].filter(Boolean).join(" - ") },
+      { label: "Origem", value: r.origem_endereco },
+      { label: "Destino", value: r.destino_endereco },
+      { label: "Obra", value: r.obra },
+      { label: "Material", value: r.material },
+      { label: "Tipo de escavação", value: r.responsavel },
+      { label: "Status", value: getStatus(v).label.replace(/[^\p{L}\s]/gu, "").trim() },
+    ];
+  };
+
+  const abrirFoto = async (v: Viagem) => {
+    setFotoOpen(v.foto_inicio_url);
+    const stamped = await stampPhoto(v.foto_inicio_url, stampFieldsFor(v));
+    if (stamped) setFotoOpen(stamped);
+  };
+
   const filtradas = useMemo(() => viagens.filter((v) => {
     const r = rotas[v.rota_id];
     if (dataIni && new Date(v.inicio_em) < new Date(dataIni)) return false;
@@ -132,11 +155,13 @@ function AdminDashboard() {
     doc.setFontSize(9);
     doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, 40, 46);
 
-    // preload images
+    // preload images (com as informações da viagem sobrepostas)
     const imgs: Record<string, string> = {};
     await Promise.all(filtradas.map(async (v) => {
       if (!v.foto_inicio_url) return;
       try {
+        const stamped = await stampPhoto(v.foto_inicio_url, stampFieldsFor(v));
+        if (stamped) { imgs[v.id] = stamped; return; }
         const res = await fetch(v.foto_inicio_url);
         const blob = await res.blob();
         const dataUrl: string = await new Promise((resolve) => {
@@ -254,7 +279,7 @@ function AdminDashboard() {
                         <TableRow key={v.id}>
                           <TableCell>
                             {v.foto_inicio_url && (
-                              <button onClick={() => setFotoOpen(v.foto_inicio_url)}>
+                              <button onClick={() => abrirFoto(v)}>
                                 <img src={v.foto_inicio_url} alt="início" className="h-12 w-12 object-cover rounded" />
                               </button>
                             )}
