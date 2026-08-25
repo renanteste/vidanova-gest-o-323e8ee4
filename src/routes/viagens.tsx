@@ -92,12 +92,12 @@ function ViagensPage() {
       const rotaIds = rows.map((r: any) => r.rota_id);
       const vehIds = rows.map((r: any) => r.veiculo_id);
 
-      // 3. Buscar rotas, veículos e viagens em paralelo
+      // 3. Buscar rotas (via server fn, respeitando as permissões), veículos e viagens
       const [rotasRes, veiculosRes, viagensRes] = await Promise.all([
-        (supabase as any)
-          .from("rotas")
-          .select("id, obra, material, preco_por_m3, origem_endereco, destino_endereco, horario_previsto, construtora")
-          .in("id", rotaIds),
+        fetchRotas({ data: { rotaIds } }).catch((e: any) => {
+          console.error("Erro ao buscar obras:", e);
+          return { rotas: [] as any[] };
+        }),
         (supabase as any)
           .from("veiculos")
           .select("id, placa, modelo, capacidade_m3")
@@ -110,7 +110,7 @@ function ViagensPage() {
       ]);
 
       // 4. Criar maps para acesso rápido
-      const rotaMap = new Map((rotasRes.data ?? []).map((x: any) => [x.id, x]));
+      const rotaMap = new Map(((rotasRes as any)?.rotas ?? []).map((x: any) => [x.id, x]));
       const veiculoMap = new Map((veiculosRes.data ?? []).map((x: any) => [x.id, x]));
       const viagensList = (viagensRes.data ?? []) as any[];
 
