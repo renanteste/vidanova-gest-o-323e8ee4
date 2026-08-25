@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
+import { getRotasDoMotorista } from "@/lib/viagens.functions";
 import { AppShell } from "@/components/AppShell";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useAuth } from "@/lib/auth";
@@ -56,6 +58,7 @@ function getPosition(): Promise<GeolocationPosition> {
 
 function ViagensPage() {
   const { user } = useAuth();
+  const fetchRotas = useServerFn(getRotasDoMotorista);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -92,12 +95,12 @@ function ViagensPage() {
       const rotaIds = rows.map((r: any) => r.rota_id);
       const vehIds = rows.map((r: any) => r.veiculo_id);
 
-      // 3. Buscar rotas, veículos e viagens em paralelo
+      // 3. Buscar rotas (via server fn, respeitando as permissões), veículos e viagens
       const [rotasRes, veiculosRes, viagensRes] = await Promise.all([
-        (supabase as any)
-          .from("rotas")
-          .select("id, obra, material, preco_por_m3, origem_endereco, destino_endereco, horario_previsto, construtora")
-          .in("id", rotaIds),
+        fetchRotas({ data: { rotaIds } }).catch((e: any) => {
+          console.error("Erro ao buscar obras:", e);
+          return { rotas: [] as any[] };
+        }),
         (supabase as any)
           .from("veiculos")
           .select("id, placa, modelo, capacidade_m3")
@@ -110,7 +113,7 @@ function ViagensPage() {
       ]);
 
       // 4. Criar maps para acesso rápido
-      const rotaMap = new Map((rotasRes.data ?? []).map((x: any) => [x.id, x]));
+      const rotaMap = new Map(((rotasRes as any)?.rotas ?? []).map((x: any) => [x.id, x]));
       const veiculoMap = new Map((veiculosRes.data ?? []).map((x: any) => [x.id, x]));
       const viagensList = (viagensRes.data ?? []) as any[];
 
@@ -275,6 +278,9 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
   const capacidade = Number(item.veiculo?.capacidade_m3 ?? 0);
   const valor = precoM3 * capacidade;
   const dur = v?.inicio_em && v?.fim_em ? Math.round((new Date(v.fim_em).getTime() - new Date(v.inicio_em).getTime()) / 60000) : null;
+  const join = (a?: string | null, b?: string | null) => [a, b].filter(Boolean).join(" — ") || "-";
+  const origem = join(item.rota?.origem_endereco, item.rota?.origem_complemento);
+  const destino = join(item.rota?.destino_endereco, item.rota?.destino_complemento);
 
   return (
     <Card>
@@ -290,10 +296,19 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
         <Timeline status={status} temFoto={!!foto} />
 
         <div className="grid sm:grid-cols-2 gap-2">
-          <div><strong>Origem:</strong> {item.rota?.origem_endereco ?? "-"}</div>
-          <div><strong>Destino:</strong> {item.rota?.destino_endereco ?? "-"}</div>
-          <div><strong>Veículo:</strong> {item.veiculo?.placa ?? "-"} — {item.veiculo?.modelo ?? "-"} ({Number(item.veiculo?.capacidade_m3).toLocaleString("pt-BR")} m³)</div>
+          <div><strong>Obra:</strong> {item.rota?.obra || "-"}</div>
+          <div><strong>Material:</strong> {item.rota?.material || "-"}</div>
+          <div><strong>Tipo de escavação:</strong> {item.rota?.responsavel || "-"}</div>
+          {item.rota?.construtora && <div><strong>Construtora:</strong> {item.rota.construtora}</div>}
+          <div className="sm:col-span-2"><strong>Origem:</strong> {origem}</div>
+          <div className="sm:col-span-2"><strong>Destino:</strong> {destino}</div>
+          {item.rota?.distancia_km != null && (
+            <div><strong>Distância:</strong> {Number(item.rota.distancia_km).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km</div>
+          )}
+          <div><strong>Preço por m³:</strong> {precoM3 ? formatBRL(precoM3) : "-"}</div>
+          <div><strong>Veículo:</strong> {item.veiculo?.placa ?? "-"} — {item.veiculo?.modelo ?? "-"} ({Number(item.veiculo?.capacidade_m3 ?? 0).toLocaleString("pt-BR")} m³)</div>
           <div><strong>Frete:</strong> <span className="text-accent font-semibold">{formatBRL(valor)}</span></div>
+          <div><strong>Status:</strong> {STAGE_LABEL[status]}</div>
         </div>
 
         {v && (
