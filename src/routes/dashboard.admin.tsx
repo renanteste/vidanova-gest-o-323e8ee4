@@ -92,6 +92,12 @@ function AdminDashboard() {
     ];
   };
 
+  const abrirFoto = async (v: Viagem) => {
+    setFotoOpen(v.foto_inicio_url);
+    const stamped = await stampPhoto(v.foto_inicio_url, stampFieldsFor(v));
+    if (stamped) setFotoOpen(stamped);
+  };
+
   const filtradas = useMemo(() => viagens.filter((v) => {
     const r = rotas[v.rota_id];
     if (dataIni && new Date(v.inicio_em) < new Date(dataIni)) return false;
