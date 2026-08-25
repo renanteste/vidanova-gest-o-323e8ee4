@@ -278,6 +278,9 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
   const capacidade = Number(item.veiculo?.capacidade_m3 ?? 0);
   const valor = precoM3 * capacidade;
   const dur = v?.inicio_em && v?.fim_em ? Math.round((new Date(v.fim_em).getTime() - new Date(v.inicio_em).getTime()) / 60000) : null;
+  const join = (a?: string | null, b?: string | null) => [a, b].filter(Boolean).join(" — ") || "-";
+  const origem = join(item.rota?.origem_endereco, item.rota?.origem_complemento);
+  const destino = join(item.rota?.destino_endereco, item.rota?.destino_complemento);
 
   return (
     <Card>
