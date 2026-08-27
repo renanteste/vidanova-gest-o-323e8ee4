@@ -117,19 +117,29 @@ function ViagensPage() {
       const veiculoMap = new Map((veiculosRes.data ?? []).map((x: any) => [x.id, x]));
       const viagensList = (viagensRes.data ?? []) as any[];
 
-      // 5. Montar os items
-      const newItems = rows.map((it: any) => ({
-        interesse_id: it.id,
-        rota_id: it.rota_id,
-        veiculo_id: it.veiculo_id,
-        rota: rotaMap.get(it.rota_id),
-        veiculo: veiculoMap.get(it.veiculo_id),
-        viagem: viagensList.find(
-          (v: any) => v.rota_id === it.rota_id && v.veiculo_id === it.veiculo_id
-        ) ?? null,
-      }));
+      // 5. Montar os items — uma linha por OBRA (evita cards duplicados da mesma obra)
+      const porRota = new Map<string, any>();
+      rows.forEach((it: any) => { if (!porRota.has(it.rota_id)) porRota.set(it.rota_id, it); });
+
+      const newItems = [...porRota.values()].map((it: any) => {
+        // Reutiliza a viagem já existente da obra: prioriza a ativa (sem fim_em),
+        // senão a mais recente. Nunca cria uma nova ao recarregar a tela.
+        const daRota = viagensList
+          .filter((v: any) => v.rota_id === it.rota_id)
+          .sort((a: any, b: any) => new Date(b.inicio_em).getTime() - new Date(a.inicio_em).getTime());
+        const viagem = daRota.find((v: any) => !v.fim_em) ?? daRota[0] ?? null;
+        return {
+          interesse_id: it.id,
+          rota_id: it.rota_id,
+          veiculo_id: it.veiculo_id,
+          rota: rotaMap.get(it.rota_id),
+          veiculo: veiculoMap.get(it.veiculo_id),
+          viagem,
+        };
+      });
 
       setItems(newItems);
+
     } catch (error) {
       console.error("Erro ao carregar viagens:", error);
       toast.error("Erro ao carregar viagens");
