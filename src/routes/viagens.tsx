@@ -152,22 +152,23 @@ function ViagensPage() {
 
   const startTrip = async (it: Item) => {
     if (!user) return;
-    // Guarda no estado local: já existe viagem carregada para esta obra
-    if (it.viagem && !it.viagem.fim_em) { toast.info("Já existe uma viagem em andamento para esta obra."); return; }
+    // Regra definitiva: uma obra = uma viagem. Se já existe qualquer viagem
+    // (em andamento ou finalizada) para esta obra, nunca criar outra.
+    if (it.viagem) { toast.info("Esta obra já possui uma viagem registrada."); return; }
     setBusy(it.interesse_id);
     try {
       // Guarda contra duplicação: revalida no banco antes de criar
       const { data: existentes } = await (supabase as any)
         .from("viagens")
-        .select("id, fim_em")
+        .select("id")
         .eq("rota_id", it.rota_id)
-        .is("fim_em", null)
         .limit(1);
       if (existentes && existentes.length > 0) {
-        toast.info("Esta obra já possui uma viagem em andamento.");
+        toast.info("Esta obra já possui uma viagem registrada.");
         await load();
         return;
       }
+
 
       const pos = await getPosition();
       const precoM3 = Number(it.rota?.preco_por_m3 ?? 0);
