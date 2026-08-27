@@ -152,8 +152,23 @@ function ViagensPage() {
 
   const startTrip = async (it: Item) => {
     if (!user) return;
+    // Guarda no estado local: já existe viagem carregada para esta obra
+    if (it.viagem && !it.viagem.fim_em) { toast.info("Já existe uma viagem em andamento para esta obra."); return; }
     setBusy(it.interesse_id);
     try {
+      // Guarda contra duplicação: revalida no banco antes de criar
+      const { data: existentes } = await (supabase as any)
+        .from("viagens")
+        .select("id, fim_em")
+        .eq("rota_id", it.rota_id)
+        .is("fim_em", null)
+        .limit(1);
+      if (existentes && existentes.length > 0) {
+        toast.info("Esta obra já possui uma viagem em andamento.");
+        await load();
+        return;
+      }
+
       const pos = await getPosition();
       const precoM3 = Number(it.rota?.preco_por_m3 ?? 0);
       const capacidade = Number(it.veiculo?.capacidade_m3 ?? 0);
@@ -173,6 +188,7 @@ function ViagensPage() {
       load();
     } catch (e: any) { toast.error(e.message ?? "Erro"); } finally { setBusy(null); }
   };
+
 
   const uploadPhoto = async (it: Item, file: File) => {
     const path = `${user!.id}/${it.rota_id}/inicio_${Date.now()}.jpg`;
