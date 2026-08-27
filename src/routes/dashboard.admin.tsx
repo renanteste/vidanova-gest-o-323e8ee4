@@ -334,6 +334,12 @@ function AdminDashboard() {
                           </TableCell>
                           <TableCell className="text-right font-medium">{v.valor_frete ? formatBRL(Number(v.valor_frete)) : "—"}</TableCell>
                           <TableCell><Badge className={getStatus(v).className}>{getStatus(v).label}</Badge></TableCell>
+                          <TableCell className="text-right">
+                            <Button size="icon" variant="ghost" aria-label="Excluir viagem" onClick={() => setExcluindo(v)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+
                         </TableRow>
                       );
                     })}
