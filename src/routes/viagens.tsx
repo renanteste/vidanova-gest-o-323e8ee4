@@ -317,7 +317,7 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
         <CardTitle className="flex items-center justify-between gap-2">
           <span>{item.rota?.obra ?? "-"} — <span className="text-muted-foreground font-normal">{item.rota?.material ?? "-"}</span></span>
           <Badge variant={status === "finalizada" ? "default" : status === "pendente" ? "outline" : "secondary"}>
-            {STAGE_LABEL[status]}
+            {statusLabel}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -337,7 +337,7 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
           <div><strong>Preço por m³:</strong> {precoM3 ? formatBRL(precoM3) : "-"}</div>
           <div><strong>Veículo:</strong> {item.veiculo?.placa ?? "-"} — {item.veiculo?.modelo ?? "-"} ({Number(item.veiculo?.capacidade_m3 ?? 0).toLocaleString("pt-BR")} m³)</div>
           <div><strong>Frete:</strong> <span className="text-accent font-semibold">{formatBRL(valor)}</span></div>
-          <div><strong>Status:</strong> {STAGE_LABEL[status]}</div>
+          <div><strong>Status:</strong> {statusLabel}</div>
         </div>
 
         {v && (
