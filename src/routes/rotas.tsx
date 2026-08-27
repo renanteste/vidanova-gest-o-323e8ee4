@@ -188,17 +188,14 @@ function RotasPage() {
                 </div>
                 {isAdmin && (
                   <div className="flex gap-2 pt-1 flex-wrap">
-                    {!started && (
-                      <>
-                        <Button size="sm" variant="outline" onClick={() => setEditing(r)}><Pencil className="h-3.5 w-3.5 mr-1" /> Editar</Button>
-                        {r.status === "disponivel" && (
-                          <Button size="sm" variant="outline" onClick={() => handleStatusToggle(r)}>Finalizar</Button>
-                        )}
-                        <Button size="sm" variant="outline" onClick={() => handleDelete(r)}><Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir</Button>
-                      </>
+                    <Button size="sm" variant="outline" onClick={() => setEditing(r)}><Pencil className="h-3.5 w-3.5 mr-1" /> Editar</Button>
+                    {!started && r.status === "disponivel" && (
+                      <Button size="sm" variant="outline" onClick={() => handleStatusToggle(r)}>Finalizar</Button>
                     )}
+                    <Button size="sm" variant="outline" onClick={() => handleDelete(r)}><Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir</Button>
                   </div>
                 )}
+
               </CardContent>
             </Card>
             );
