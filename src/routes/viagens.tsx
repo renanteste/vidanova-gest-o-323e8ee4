@@ -307,6 +307,9 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
   const join = (a?: string | null, b?: string | null) => [a, b].filter(Boolean).join(" — ") || "-";
   const origem = join(item.rota?.origem_endereco, item.rota?.origem_complemento);
   const destino = join(item.rota?.destino_endereco, item.rota?.destino_complemento);
+  // Último estado salvo: em andamento com/sem foto enviada
+  const statusLabel = status === "em_andamento" && foto ? "Foto enviada" : STAGE_LABEL[status];
+
 
   return (
     <Card>
