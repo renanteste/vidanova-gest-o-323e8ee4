@@ -306,6 +306,8 @@ function AdminDashboard() {
                     <TableHead>Material</TableHead><TableHead>Motorista</TableHead><TableHead>Veículo</TableHead>
                     <TableHead>GPS</TableHead><TableHead className="text-right">Frete</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+
                   </TableRow></TableHeader>
                   <TableBody>
                     {filtradas.map((v) => {
