@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, Truck, Route as RouteIcon, Package, Download, MapPin, Ban, CheckCircle2, FileText } from "lucide-react";
+import { Users, Truck, Route as RouteIcon, Package, Download, MapPin, Ban, CheckCircle2, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatBRL } from "@/lib/geo";
 import jsPDF from "jspdf";
