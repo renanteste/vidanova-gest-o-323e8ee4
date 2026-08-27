@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, Truck, Route as RouteIcon, Package, Download, MapPin, Ban, CheckCircle2, FileText } from "lucide-react";
+import { Users, Truck, Route as RouteIcon, Package, Download, MapPin, Ban, CheckCircle2, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatBRL } from "@/lib/geo";
 import jsPDF from "jspdf";
@@ -44,11 +44,13 @@ function AdminDashboard() {
   // filtros
   const [dataIni, setDataIni] = useState("");
   const [dataFim, setDataFim] = useState("");
-  const [filtroOrigem, setFiltroOrigem] = useState("");
-  const [filtroDestino, setFiltroDestino] = useState("");
+  const [filtroObra, setFiltroObra] = useState(""); // id da rota (obra)
   const [filtroMaterial, setFiltroMaterial] = useState("");
   const [filtroStatus, setFiltroStatus] = useState(""); // New status filter state
   const [fotoOpen, setFotoOpen] = useState<string | null>(null);
+  const [excluindo, setExcluindo] = useState<Viagem | null>(null);
+  const [busyDelete, setBusyDelete] = useState(false);
+
 
   const load = async () => {
     setLoading(true);
@@ -98,16 +100,36 @@ function AdminDashboard() {
     if (stamped) setFotoOpen(stamped);
   };
 
+  // Obras cadastradas (usa a relação existente viagem -> rota)
+  const obrasOptions = useMemo(
+    () => (Object.values(rotas) as any[])
+      .map((r) => ({ id: r.id as string, obra: (r.obra as string) ?? "—" }))
+      .sort((a, b) => a.obra.localeCompare(b.obra, "pt-BR")),
+    [rotas],
+  );
+
+  const excluirViagem = async () => {
+    if (!excluindo) return;
+    setBusyDelete(true);
+    // Remove apenas o registro da viagem. A foto no Storage é preservada.
+    const { error } = await (supabase as any).from("viagens").delete().eq("id", excluindo.id);
+    setBusyDelete(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Registro de viagem excluído");
+    setExcluindo(null);
+    load();
+  };
+
   const filtradas = useMemo(() => viagens.filter((v) => {
     const r = rotas[v.rota_id];
     if (dataIni && new Date(v.inicio_em) < new Date(dataIni)) return false;
     if (dataFim && new Date(v.inicio_em) > new Date(dataFim + "T23:59:59")) return false;
-    if (filtroOrigem && !r?.origem_endereco?.toLowerCase().includes(filtroOrigem.toLowerCase())) return false;
-    if (filtroDestino && !r?.destino_endereco?.toLowerCase().includes(filtroDestino.toLowerCase())) return false;
-    if (filtroMaterial && !r?.material?.toLowerCase().includes(filtroMaterial.toLowerCase())) return false;
+    if (filtroObra && v.rota_id !== filtroObra) return false;
+    if (filtroMaterial && r?.material !== filtroMaterial) return false;
     if (filtroStatus && getStatus(v).label !== filtroStatus) return false;
     return true;
-  }), [viagens, rotas, dataIni, dataFim, filtroOrigem, filtroDestino, filtroMaterial, filtroStatus]);
+  }), [viagens, rotas, dataIni, dataFim, filtroObra, filtroMaterial, filtroStatus]);
+
 
   // métricas
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
@@ -240,9 +262,22 @@ function AdminDashboard() {
             <CardContent className="grid sm:grid-cols-5 gap-3">
               <div><Label>De</Label><Input type="date" value={dataIni} onChange={(e) => setDataIni(e.target.value)} /></div>
               <div><Label>Até</Label><Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} /></div>
-              <div><Label>Origem</Label><Input value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)} placeholder="Cidade/rua" /></div>
-              <div><Label>Destino</Label><Input value={filtroDestino} onChange={(e) => setFiltroDestino(e.target.value)} placeholder="Cidade/rua" /></div>
-              <div><Label>Material</Label><Input value={filtroMaterial} onChange={(e) => setFiltroMaterial(e.target.value)} placeholder="Ex: SOLO 2B" /></div>
+              <div>
+                <Label>Obra</Label>
+                <select value={filtroObra} onChange={(e) => setFiltroObra(e.target.value)} className="w-full rounded-md border border-gray-200 p-2">
+                  <option value="">Todas</option>
+                  {obrasOptions.map((o) => <option key={o.id} value={o.id}>{o.obra}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label>Material</Label>
+                <select value={filtroMaterial} onChange={(e) => setFiltroMaterial(e.target.value)} className="w-full rounded-md border border-gray-200 p-2">
+                  <option value="">Todos</option>
+                  <option value="Solo">Solo</option>
+                  <option value="Limpeza/Entulho">Limpeza/Entulho</option>
+                </select>
+              </div>
+
               <div>
                 <Label>Status</Label>
                 <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} className="w-full rounded-md border border-gray-200 p-2">
@@ -271,6 +306,8 @@ function AdminDashboard() {
                     <TableHead>Material</TableHead><TableHead>Motorista</TableHead><TableHead>Veículo</TableHead>
                     <TableHead>GPS</TableHead><TableHead className="text-right">Frete</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+
                   </TableRow></TableHeader>
                   <TableBody>
                     {filtradas.map((v) => {
@@ -297,6 +334,12 @@ function AdminDashboard() {
                           </TableCell>
                           <TableCell className="text-right font-medium">{v.valor_frete ? formatBRL(Number(v.valor_frete)) : "—"}</TableCell>
                           <TableCell><Badge className={getStatus(v).className}>{getStatus(v).label}</Badge></TableCell>
+                          <TableCell className="text-right">
+                            <Button size="icon" variant="ghost" aria-label="Excluir viagem" onClick={() => setExcluindo(v)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+
                         </TableRow>
                       );
                     })}
@@ -376,6 +419,26 @@ function AdminDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!excluindo} onOpenChange={(o) => !o && setExcluindo(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Excluir registro de viagem</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Esta ação removerá permanentemente <strong>apenas o registro desta viagem</strong> do sistema e dos relatórios.
+            A obra, o veículo, o motorista e a foto armazenada não serão excluídos.
+          </p>
+          {excluindo && (
+            <p className="text-sm">
+              {rotas[excluindo.rota_id]?.obra ?? "—"} — {new Date(excluindo.inicio_em).toLocaleString("pt-BR")}
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setExcluindo(null)} disabled={busyDelete}>Cancelar</Button>
+            <Button variant="destructive" onClick={excluirViagem} disabled={busyDelete}>Excluir</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
 
       <Dialog open={!!fotoOpen} onOpenChange={(o) => !o && setFotoOpen(null)}>
         <DialogContent className="max-w-2xl">

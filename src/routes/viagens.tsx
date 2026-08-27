@@ -117,19 +117,29 @@ function ViagensPage() {
       const veiculoMap = new Map((veiculosRes.data ?? []).map((x: any) => [x.id, x]));
       const viagensList = (viagensRes.data ?? []) as any[];
 
-      // 5. Montar os items
-      const newItems = rows.map((it: any) => ({
-        interesse_id: it.id,
-        rota_id: it.rota_id,
-        veiculo_id: it.veiculo_id,
-        rota: rotaMap.get(it.rota_id),
-        veiculo: veiculoMap.get(it.veiculo_id),
-        viagem: viagensList.find(
-          (v: any) => v.rota_id === it.rota_id && v.veiculo_id === it.veiculo_id
-        ) ?? null,
-      }));
+      // 5. Montar os items — uma linha por OBRA (evita cards duplicados da mesma obra)
+      const porRota = new Map<string, any>();
+      rows.forEach((it: any) => { if (!porRota.has(it.rota_id)) porRota.set(it.rota_id, it); });
+
+      const newItems = [...porRota.values()].map((it: any) => {
+        // Reutiliza a viagem já existente da obra: prioriza a ativa (sem fim_em),
+        // senão a mais recente. Nunca cria uma nova ao recarregar a tela.
+        const daRota = viagensList
+          .filter((v: any) => v.rota_id === it.rota_id)
+          .sort((a: any, b: any) => new Date(b.inicio_em).getTime() - new Date(a.inicio_em).getTime());
+        const viagem = daRota.find((v: any) => !v.fim_em) ?? daRota[0] ?? null;
+        return {
+          interesse_id: it.id,
+          rota_id: it.rota_id,
+          veiculo_id: it.veiculo_id,
+          rota: rotaMap.get(it.rota_id),
+          veiculo: veiculoMap.get(it.veiculo_id),
+          viagem,
+        };
+      });
 
       setItems(newItems);
+
     } catch (error) {
       console.error("Erro ao carregar viagens:", error);
       toast.error("Erro ao carregar viagens");
@@ -142,8 +152,23 @@ function ViagensPage() {
 
   const startTrip = async (it: Item) => {
     if (!user) return;
+    // Guarda no estado local: já existe viagem carregada para esta obra
+    if (it.viagem && !it.viagem.fim_em) { toast.info("Já existe uma viagem em andamento para esta obra."); return; }
     setBusy(it.interesse_id);
     try {
+      // Guarda contra duplicação: revalida no banco antes de criar
+      const { data: existentes } = await (supabase as any)
+        .from("viagens")
+        .select("id, fim_em")
+        .eq("rota_id", it.rota_id)
+        .is("fim_em", null)
+        .limit(1);
+      if (existentes && existentes.length > 0) {
+        toast.info("Esta obra já possui uma viagem em andamento.");
+        await load();
+        return;
+      }
+
       const pos = await getPosition();
       const precoM3 = Number(it.rota?.preco_por_m3 ?? 0);
       const capacidade = Number(it.veiculo?.capacidade_m3 ?? 0);
@@ -163,6 +188,7 @@ function ViagensPage() {
       load();
     } catch (e: any) { toast.error(e.message ?? "Erro"); } finally { setBusy(null); }
   };
+
 
   const uploadPhoto = async (it: Item, file: File) => {
     const path = `${user!.id}/${it.rota_id}/inicio_${Date.now()}.jpg`;
@@ -281,6 +307,9 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
   const join = (a?: string | null, b?: string | null) => [a, b].filter(Boolean).join(" — ") || "-";
   const origem = join(item.rota?.origem_endereco, item.rota?.origem_complemento);
   const destino = join(item.rota?.destino_endereco, item.rota?.destino_complemento);
+  // Último estado salvo: em andamento com/sem foto enviada
+  const statusLabel = status === "em_andamento" && foto ? "Foto enviada" : STAGE_LABEL[status];
+
 
   return (
     <Card>
@@ -288,7 +317,7 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
         <CardTitle className="flex items-center justify-between gap-2">
           <span>{item.rota?.obra ?? "-"} — <span className="text-muted-foreground font-normal">{item.rota?.material ?? "-"}</span></span>
           <Badge variant={status === "finalizada" ? "default" : status === "pendente" ? "outline" : "secondary"}>
-            {STAGE_LABEL[status]}
+            {statusLabel}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -308,7 +337,7 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
           <div><strong>Preço por m³:</strong> {precoM3 ? formatBRL(precoM3) : "-"}</div>
           <div><strong>Veículo:</strong> {item.veiculo?.placa ?? "-"} — {item.veiculo?.modelo ?? "-"} ({Number(item.veiculo?.capacidade_m3 ?? 0).toLocaleString("pt-BR")} m³)</div>
           <div><strong>Frete:</strong> <span className="text-accent font-semibold">{formatBRL(valor)}</span></div>
-          <div><strong>Status:</strong> {STAGE_LABEL[status]}</div>
+          <div><strong>Status:</strong> {statusLabel}</div>
         </div>
 
         {v && (
