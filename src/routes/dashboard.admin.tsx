@@ -44,11 +44,13 @@ function AdminDashboard() {
   // filtros
   const [dataIni, setDataIni] = useState("");
   const [dataFim, setDataFim] = useState("");
-  const [filtroOrigem, setFiltroOrigem] = useState("");
-  const [filtroDestino, setFiltroDestino] = useState("");
+  const [filtroObra, setFiltroObra] = useState(""); // id da rota (obra)
   const [filtroMaterial, setFiltroMaterial] = useState("");
   const [filtroStatus, setFiltroStatus] = useState(""); // New status filter state
   const [fotoOpen, setFotoOpen] = useState<string | null>(null);
+  const [excluindo, setExcluindo] = useState<Viagem | null>(null);
+  const [busyDelete, setBusyDelete] = useState(false);
+
 
   const load = async () => {
     setLoading(true);
