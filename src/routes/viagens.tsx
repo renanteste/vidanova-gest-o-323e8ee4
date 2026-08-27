@@ -353,7 +353,7 @@ function ViagemCard({ item, busy, onStart, onFoto, onFinalizar }: {
           onChange={(e) => { const f = e.target.files?.[0]; if (f) onFoto(item, f); e.currentTarget.value = ""; }} />
 
         <div className="flex flex-wrap gap-2 pt-1">
-          {status === "pendente" && (
+          {!v && status === "pendente" && (
             <Button disabled={busy} onClick={() => onStart(item)} className="bg-accent text-accent-foreground hover:bg-accent/90">
               <PlayCircle className="h-4 w-4 mr-1" /> Iniciar viagem
             </Button>
