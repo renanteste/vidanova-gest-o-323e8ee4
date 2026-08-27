@@ -99,11 +99,23 @@ function RotasPage() {
   };
 
   const handleDelete = async (r: Rota) => {
-    if (!confirm(`Excluir a obra "${r.obra}"?`)) return;
+    // Verifica registros relacionados antes de excluir (não remove dados de outras entidades)
+    const [{ count: viagensCount }, { count: interessesCount }] = await Promise.all([
+      supabase.from("viagens").select("id", { count: "exact", head: true }).eq("rota_id", r.id),
+      supabase.from("interesses_rotas").select("id", { count: "exact", head: true }).eq("rota_id", r.id),
+    ]);
+    if ((viagensCount ?? 0) > 0 || (interessesCount ?? 0) > 0) {
+      toast.error(
+        `Não é possível excluir a obra "${r.obra}": existem ${viagensCount ?? 0} viagem(ns) e ${interessesCount ?? 0} interesse(s) vinculados.`,
+      );
+      return;
+    }
+    if (!confirm(`Excluir a obra "${r.obra}"? Esta ação não pode ser desfeita.`)) return;
     const { error } = await supabase.from("rotas").delete().eq("id", r.id);
     if (error) toast.error(error.message);
     else { toast.success("Obra excluída"); load(); }
   };
+
 
   return (
     <AppShell title={isAdmin ? "Obras" : "Obras (visualização)"}>
