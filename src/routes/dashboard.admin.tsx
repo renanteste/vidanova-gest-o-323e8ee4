@@ -420,6 +420,26 @@ function AdminDashboard() {
         </TabsContent>
       </Tabs>
 
+      <Dialog open={!!excluindo} onOpenChange={(o) => !o && setExcluindo(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Excluir registro de viagem</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Esta ação removerá permanentemente <strong>apenas o registro desta viagem</strong> do sistema e dos relatórios.
+            A obra, o veículo, o motorista e a foto armazenada não serão excluídos.
+          </p>
+          {excluindo && (
+            <p className="text-sm">
+              {rotas[excluindo.rota_id]?.obra ?? "—"} — {new Date(excluindo.inicio_em).toLocaleString("pt-BR")}
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setExcluindo(null)} disabled={busyDelete}>Cancelar</Button>
+            <Button variant="destructive" onClick={excluirViagem} disabled={busyDelete}>Excluir</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
       <Dialog open={!!fotoOpen} onOpenChange={(o) => !o && setFotoOpen(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Foto da viagem</DialogTitle></DialogHeader>
