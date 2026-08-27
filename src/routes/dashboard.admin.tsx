@@ -104,12 +104,12 @@ function AdminDashboard() {
     const r = rotas[v.rota_id];
     if (dataIni && new Date(v.inicio_em) < new Date(dataIni)) return false;
     if (dataFim && new Date(v.inicio_em) > new Date(dataFim + "T23:59:59")) return false;
-    if (filtroOrigem && !r?.origem_endereco?.toLowerCase().includes(filtroOrigem.toLowerCase())) return false;
-    if (filtroDestino && !r?.destino_endereco?.toLowerCase().includes(filtroDestino.toLowerCase())) return false;
-    if (filtroMaterial && !r?.material?.toLowerCase().includes(filtroMaterial.toLowerCase())) return false;
+    if (filtroObra && v.rota_id !== filtroObra) return false;
+    if (filtroMaterial && r?.material !== filtroMaterial) return false;
     if (filtroStatus && getStatus(v).label !== filtroStatus) return false;
     return true;
-  }), [viagens, rotas, dataIni, dataFim, filtroOrigem, filtroDestino, filtroMaterial, filtroStatus]);
+  }), [viagens, rotas, dataIni, dataFim, filtroObra, filtroMaterial, filtroStatus]);
+
 
   // métricas
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
