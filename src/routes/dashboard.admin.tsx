@@ -242,9 +242,22 @@ function AdminDashboard() {
             <CardContent className="grid sm:grid-cols-5 gap-3">
               <div><Label>De</Label><Input type="date" value={dataIni} onChange={(e) => setDataIni(e.target.value)} /></div>
               <div><Label>Até</Label><Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} /></div>
-              <div><Label>Origem</Label><Input value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)} placeholder="Cidade/rua" /></div>
-              <div><Label>Destino</Label><Input value={filtroDestino} onChange={(e) => setFiltroDestino(e.target.value)} placeholder="Cidade/rua" /></div>
-              <div><Label>Material</Label><Input value={filtroMaterial} onChange={(e) => setFiltroMaterial(e.target.value)} placeholder="Ex: SOLO 2B" /></div>
+              <div>
+                <Label>Obra</Label>
+                <select value={filtroObra} onChange={(e) => setFiltroObra(e.target.value)} className="w-full rounded-md border border-gray-200 p-2">
+                  <option value="">Todas</option>
+                  {obrasOptions.map((o) => <option key={o.id} value={o.id}>{o.obra}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label>Material</Label>
+                <select value={filtroMaterial} onChange={(e) => setFiltroMaterial(e.target.value)} className="w-full rounded-md border border-gray-200 p-2">
+                  <option value="">Todos</option>
+                  <option value="Solo">Solo</option>
+                  <option value="Limpeza/Entulho">Limpeza/Entulho</option>
+                </select>
+              </div>
+
               <div>
                 <Label>Status</Label>
                 <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} className="w-full rounded-md border border-gray-200 p-2">
