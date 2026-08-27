@@ -100,6 +100,26 @@ function AdminDashboard() {
     if (stamped) setFotoOpen(stamped);
   };
 
+  // Obras cadastradas (usa a relação existente viagem -> rota)
+  const obrasOptions = useMemo(
+    () => (Object.values(rotas) as any[])
+      .map((r) => ({ id: r.id as string, obra: (r.obra as string) ?? "—" }))
+      .sort((a, b) => a.obra.localeCompare(b.obra, "pt-BR")),
+    [rotas],
+  );
+
+  const excluirViagem = async () => {
+    if (!excluindo) return;
+    setBusyDelete(true);
+    // Remove apenas o registro da viagem. A foto no Storage é preservada.
+    const { error } = await (supabase as any).from("viagens").delete().eq("id", excluindo.id);
+    setBusyDelete(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Registro de viagem excluído");
+    setExcluindo(null);
+    load();
+  };
+
   const filtradas = useMemo(() => viagens.filter((v) => {
     const r = rotas[v.rota_id];
     if (dataIni && new Date(v.inicio_em) < new Date(dataIni)) return false;
